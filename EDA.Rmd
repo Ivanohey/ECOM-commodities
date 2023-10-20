@@ -1,6 +1,6 @@
 ---
 title: "EDA"
-author: "Ivan Kostine"
+author: "Ivan Kostine, Niccolo Cherubini, Charlène Khairallah"
 date: "`r format(Sys.time(), '%d-%m-%Y')`"
 bibliography: biblio.bib
 output: 
