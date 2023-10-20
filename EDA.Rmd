@@ -1,0 +1,27 @@
+---
+title: "EDA"
+author: "Ivan Kostine"
+date: "`r format(Sys.time(), '%d-%m-%Y')`"
+bibliography: biblio.bib
+output: 
+  html_document:
+    theme: cosmo
+    highlight: rstudio
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r import_data}
+library(readxl)
+COT_Disaggreated_FuturesAndOptionsCombined <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx")
+
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+
+
+
+```
+
