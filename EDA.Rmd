@@ -13,15 +13,66 @@ output:
 ---
 
 ```{r import_data}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
 library(readxl)
-COT_Disaggreated_FuturesAndOptionsCombined <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx")
+library(lubridate)
+library(DataExplorer)
+library(corrplot)
+library(GGally)
+library(DT)
+
+#web scrapping
+library(rvest)
+
+#cleaning 
+library(summarytools)
+library(imputeTS)
+
+#Forecasting 
+library(tsibble)
+library(fpp3)
+library(ggfortify)
+
+wd = getwd()
+cat("Current working directory: ",wd)
+setwd(wd)
+
+COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Silver<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Silver") %>% as_tsibble(index= Date, regular=FALSE)
 
 ```
 
 
 ```{r, echo=FALSE, message=FALSE}
+COT_Cotton %>% select("Producer/Merchant/Processor/User Shorts") %>% autoplot() + labs(title = "COT Cotton", x = "Date", y = "Number of positions") 
+COT_Cocoa %>% select("Producer/Merchant/Processor/User Shorts") %>% autoplot() + labs(title = "COT Cocoa", x = "Date", y = "Number of positions") 
+COT_Silver %>% select("Producer/Merchant/Processor/User Shorts") %>% autoplot() + labs(title = "COT Silver", x = "Date", y = "Number of positions") 
 
+ShortLongCotton <- COT_Cotton %>% select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% gather(key = "Variable", value = "value", -Date)
 
+ShortLongCocoa <- COT_Cocoa %>% select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% gather(key = "Variable", value = "value", -Date)
+
+ShortLongSilver <- COT_Silver %>% select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% gather(key = "Variable", value = "value", -Date)
+
+ggplot(ShortLongCotton, aes(x = Date, y = value)) + 
+  geom_line(aes(color = Variable)) + 
+  scale_color_manual(values = c("darkred", "darkblue")) +
+  labs(title="Producer Longs vs. Shorts - Cotton")
+
+ggplot(ShortLongCocoa, aes(x = Date, y = value)) + 
+  geom_line(aes(color = Variable)) + 
+  scale_color_manual(values = c("darkred", "darkblue")) +
+  labs(title="Producer Longs vs. Shorts - Cocoa")
+
+ggplot(ShortLongSilver, aes(x = Date, y = value)) + 
+  geom_line(aes(color = Variable)) + 
+  scale_color_manual(values = c("darkred", "darkblue")) +
+  labs(title="Producer Longs vs. Shorts - Silver")
 
 ```
 
