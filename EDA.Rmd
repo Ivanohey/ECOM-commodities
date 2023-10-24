@@ -2,7 +2,6 @@
 title: "EDA"
 author: "Ivan Kostine, Niccolo Cherubini, Charlène Khairallah"
 date: "`r format(Sys.time(), '%d-%m-%Y')`"
-bibliography: biblio.bib
 output: 
   html_document:
     theme: cosmo
@@ -73,6 +72,39 @@ ggplot(ShortLongSilver, aes(x = Date, y = value)) +
   geom_line(aes(color = Variable)) + 
   scale_color_manual(values = c("darkred", "darkblue")) +
   labs(title="Producer Longs vs. Shorts - Silver")
+
+```
+```{r createDF}
+commodity_dfs = list()
+sheets = excel_sheets(path="./data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx")
+for ( i in 1:length(sheets)){
+  tempdf = read_excel("./data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet=sheets[i])
+  commodity_dfs[[i]] = tempdf
+}
+
+```
+
+
+
+```{r}
+
+```
+
+```{r longs vs. shorts }
+
+for (i in 1:length(commodity_dfs)){
+  current = commodity_dfs[[i]] %>% as_tibble(index=Date, regular=FALSE) 
+  currentplot <- current %>% 
+    select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% 
+    gather(key = "Variable", value = "value", -Date)
+  
+  plot = ggplot(currentplot, aes(x = Date, y = value)) + 
+    geom_line(aes(color = Variable)) + 
+    scale_color_manual(values = c("darkred", "darkblue")) +
+    labs(title=str_glue('Producer Longs vs. Shorts - {sheets[i]}'))
+  print(plot)
+}
+
 
 ```
 
