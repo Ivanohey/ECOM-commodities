@@ -147,5 +147,17 @@ P
 ```
 
 
+```{r}
+COT_data_long <- COT_Cocoa %>%
+  gather(key = "Variable", value = "Value", -Date)
+
+ggplot(data = COT_data_long, aes(x = Date, y = Value)) +
+  geom_line() +
+  facet_wrap(~Variable, scales = "free_y") +
+  labs(title = "Time Series Plots for COT Cocoa",
+       x = "Date", y = "Value")
+
+
+```
 
 
