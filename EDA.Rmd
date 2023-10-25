@@ -161,3 +161,18 @@ ggplot(data = COT_data_long, aes(x = Date, y = Value)) +
 ```
 
 
+
+```{r}
+
+COT_Cocoa$MA <- zoo::rollmean(COT_Cocoa$`Open Interest`, k = 10, fill = NA)
+plot(COT_Cocoa$Date, COT_Cocoa$MA, type = "l", xlab = "Date", ylab = "10-Day Moving Average", main = "10-Day Moving Average")
+
+
+```
+
+
+
+
+
+
+
