@@ -108,3 +108,44 @@ for (i in 1:length(commodity_dfs)){
 
 ```
 
+
+```{r}
+# Libraries
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(hrbrthemes)
+
+# Usual area chart
+COI <- COT_Cocoa %>%
+  ggplot( aes(x=Date, y= `Open Interest`)) +
+    geom_area(fill="#69b3a2", alpha=0.5) +
+    geom_line(color="#69b3a2") +
+    ylab("Open interest of cocoa") +
+    theme_ipsum()
+
+# Turn it interactive with ggplotly
+COI <- ggplotly(COI)
+COI
+
+```
+```{r}
+# Load required libraries
+library(dygraphs)
+library(xts)
+
+# Create xts object from your data
+PLS <- xts(data.frame(
+  date = COT_Cocoa$Date,  
+  producer_short = COT_Cocoa$`Producer/Merchant/Processor/User Longs`, 
+  producer_long = COT_Cocoa$`Producer/Merchant/Processor/User Shorts`), order.by = COT_Cocoa$Date)
+
+# Create dygraph
+P <- dygraph(PLS)
+P
+
+```
+
+
+
+
