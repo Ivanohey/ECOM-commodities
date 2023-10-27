@@ -132,7 +132,7 @@ for (commodity_name in names(commodity_data_list)) {
   PLS <- xts(current_data, order.by = current_data$Date)
   
   # Create dygraph
-  P <- dygraph(PLS, main = paste("Producer Longs vs. Shorts -", commodity_name))
+  P <- dygraph(PLS, main = paste(commodity_name))
   
   # Display the dygraph
   print(P)
