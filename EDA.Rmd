@@ -92,30 +92,6 @@ for (commodity in commodities) {
 ```
 
 
-```{r longs vs. shorts }
-
-library(ggplot2)
-library(tidyr)
-
-# Create and display time series plots for each data frame in the list
-for (i in 1:length(commodity_data_list)) {
-  current_data <- commodity_data_list[[i]]
-  
-  currentplot <- current_data %>% 
-    select(Date, "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% 
-    gather(key = "Variable", value = "value", -Date)
-  
-  plot = ggplot(currentplot, aes(x = Date, y = value)) + 
-    geom_line(aes(color = Variable)) + 
-    scale_color_manual(values = c("darkred", "darkblue")) +
-    labs(title = str_glue('Producer Longs vs. Shorts - {names(commodity_data_list)[i]}'))
-  
-  print(plot)
-}
-
-
-```
-
 
 ```{r}
 library(ggplot2)
