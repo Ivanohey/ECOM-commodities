@@ -50,6 +50,16 @@ COT_HeatOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx",
 COT_Gasoline<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gasoline") %>% as_tsibble(index= Date, regular=FALSE)
 COT_Corn<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Corn") %>% as_tsibble(index= Date, regular=FALSE)
 COT_Soybeans<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Soybeans") %>% as_tsibble(index= Date, regular=FALSE)
+COT_SoyOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyOil") %>% as_tsibble(index= Date, regular=FALSE)
+COT_SoyMeal<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyMeal") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Wheat<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Wheat") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Gold<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gold") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Platinum<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Platinum") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Palladium<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Palladium") %>% as_tsibble(index= Date, regular=FALSE)
+COT_FedCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="FedCattle") %>% as_tsibble(index= Date, regular=FALSE)
+COT_LiveCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LiveCattle") %>% as_tsibble(index= Date, regular=FALSE)
+COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
+
 
 ```
 
