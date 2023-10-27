@@ -43,6 +43,13 @@ setwd(wd)
 COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
 COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
 COT_Silver<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Silver") %>% as_tsibble(index= Date, regular=FALSE)
+COT_CrudeOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="CrudeOil") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Sugar<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Sugar") %>% as_tsibble(index= Date, regular=FALSE)
+COT_NagGas<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="NagGas") %>% as_tsibble(index= Date, regular=FALSE)
+COT_HeatOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="HeatOil") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Gasoline<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gasoline") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Corn<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Corn") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Soybeans<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Soybeans") %>% as_tsibble(index= Date, regular=FALSE)
 
 ```
 
