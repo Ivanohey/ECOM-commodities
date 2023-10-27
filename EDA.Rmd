@@ -82,8 +82,23 @@ commodities <- c(
 
 # Load data for each commodity and store it in the list
 for (commodity in commodities) {
-  data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>%
-    as_tsibble(index = Date, regular = FALSE)
+  data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>% rename(
+    "Open_Interest" = "Open Interest",
+    "Producer_Longs"="Producer/Merchant/Processor/User Longs",
+    "Producer_Shorts"="Producer/Merchant/Processor/User Shorts",
+    "Swap_Dealer_Longs"="Swap Dealer Longs",
+    "Swap_Dealer_Shorts"="Swap Dealer Shorts",
+    "Swap_Dealer_Spreads"="Swap Dealer Spreads",
+    "Money_Manager_Longs"="Money Manager Longs",
+    "Money_Manager_Shorts"="Money Manager Shorts",
+    "Money_Manager_Spreads"="Money Manager Spreads",
+    "Other_Reportable_Longs"="Other Reportable Longs",
+    "Other_Reportable_Shorts"="Other Reportable Shorts",
+    "Other_Reportable_Shorts"="Other Reportable Shorts",
+    "Total_Reportable_Longs"="Total Reportable Longs",
+    "Total_Reportable_Shorts"="Total Reportable Shorts",
+    "Non_Reportable_Longs"="Non Reportable Longs",
+    "Non_Reportable_Shorts"="Non Reportable Shorts") %>% as_tsibble(index = Date, regular = FALSE)
   commodity_data_list[[commodity]] <- data
 }
 
@@ -104,10 +119,11 @@ for (commodity_name in names(commodity_data_list)) {
   current_data <- commodity_data_list[[commodity_name]]
   
   open_interest_chart <- current_data %>%
-    ggplot(aes(x = Date, y = `Open Interest`)) +
+    ggplot(aes(x = Date, y = `Open_Interest`)) +
+    ggtitle(paste("Open interest of ", commodity_name))+
     geom_area(fill = "#69b3a2", alpha = 0.5) +
     geom_line(color = "#69b3a2") +
-    ylab(paste("Open Interest of", commodity_name)) +
+    ylab("Open Interest") +
     theme_ipsum()
     
   interactive_area_chart <- ggplotly(open_interest_chart)
@@ -183,8 +199,8 @@ for (commodity_name in names(commodity_data_list)) {
   # Create xts object with selected variables
   PLS <- xts(data.frame(
     Date = current_data$Date,
-    producer_short = current_data$`Producer/Merchant/Processor/User Longs`,
-    producer_long = current_data$`Producer/Merchant/Processor/User Shorts`
+    producer_short = current_data$`Producer_Longs`,
+    producer_long = current_data$`Producer_Shorts`
   ), order.by = current_data$Date)
   
   # Create dygraph
@@ -230,7 +246,7 @@ for (commodity_name in names(commodity_data_list)) {
   numeric_data <- commodity_data_list[[commodity_name]][, numeric_columns]
   
   # Check if there are enough numeric columns for correlation analysis
-  if (sum(numeric_columns) >= 2) {
+  if (sum(numeric_columns) >= 2)  {
     correlation_matrix <- cor(numeric_data)
     
     # Store the correlation matrix in the list with the category as the name
@@ -273,8 +289,23 @@ correlation_matrices <- list(
   "Energy Commodities" = NULL
 )
 
+category_commodities <- list(
+  "Agricultural Commodities" = list(),
+  "Livestock" = list(),
+  "Metals" = list(),
+  "Energy Commodities" = list(),
+  "Other" = list()
+)
+
+#Building lists with commodities within categories
+for (commodity in names(commodity_data_list)){
+  current_category = categorize_commodity(commodity)
+  category_commodities[[current_category]] <- append(category_commodities[[current_category]], commodity)
+}
+
 # Loop through the data frames
 for (commodity_name in names(commodity_data_list)) {
+  
   # Categorize the commodity
   category <- categorize_commodity(commodity_name)
   
@@ -295,11 +326,37 @@ for (commodity_name in names(commodity_data_list)) {
   }
 }
 
-# Visualize correlations for each category
-for (category in names(correlation_matrices)) {
-  cat("\nCategory:", category)
-  corrplot(correlation_matrices[[category]], method = "color", type = "lower", tl.col = "black", title = "Correlation Heatmap")
+
+library(reshape2)
+# Loop through the data frames
+for (current_category in names(category_commodities)) {
+  for(current_commodity in category_commodities[[current_category]]){
+    my_data = commodity_data_list[[current_commodity]] %>% data.frame() %>% select(-Date)
+  
+    cormat = round(cor(my_data),2)
+    melted_cormat <- melt(cormat) %>% rename("Variable_1"="Var1", "Variable_2"="Var2")
+    plot = ggplot(data = melted_cormat, aes(x=Variable_1, y=Variable_2, fill=value)) +
+    ggtitle(paste("Correlation heatmap", current_commodity))+
+    geom_tile(color = "white") +
+    scale_fill_gradient2(high = "darkblue", low = "darkred", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab", name="Pearson\nCorrelation") +
+    theme_minimal()+ 
+    theme(axis.text.y = element_text(size=7))+
+    theme(axis.text.x = element_text(angle = 40, vjust = 1, size = 7, hjust = 1))+
+    coord_fixed()
+    print(plot)
+  }
+  
+  
+  
+  
+  
 }
+
+# Visualize correlations for each category
+#for (category in names(correlation_matrices)) {
+ # cat("\nCategory:", category)
+  #corrplot(correlation_matrices[[category]], method = "color", type = "lower", tl.col = "black", title = paste("Correlation Heatmap",category))
+#}
 
 ```
 
