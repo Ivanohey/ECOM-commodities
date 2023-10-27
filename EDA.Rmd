@@ -202,13 +202,13 @@ for (commodity_name in names(commodity_data_list)) {
 
 # Define a function to categorize commodities
 categorize_commodity <- function(commodity_name) {
-  if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoybeanOil", "SoybeanMeal", "Wheat", "LeanHogs")) {
+  if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoyOil", "SoyMeal", "Wheat", "LeanHogs")) {
     return("Agricultural Commodities")
-  } else if (commodity_name %in% c("FeederCattle", "LiveCattle", "LeanHogs")) {
+  } else if (commodity_name %in% c("FedCattle", "LiveCattle", "LeanHogs")) {
     return("Livestock")
   } else if (commodity_name %in% c("Copper", "Gold", "Silver", "Platinum", "Palladium")) {
     return("Metals")
-  } else if (commodity_name %in% c("CrudeOil", "NaturalGas", "HeatingOil")) {
+  } else if (commodity_name %in% c("CrudeOil", "NagGas", "HeatOil","Gasoline")) {
     return("Energy Commodities")
   } else {
     return("Other")
@@ -232,21 +232,18 @@ for (commodity_name in names(commodity_data_list)) {
   # Select and calculate the correlation matrix for numeric columns
   numeric_data <- commodity_data_list[[commodity_name]][, numeric_columns]
   
-  # Check if there are enough numeric columns for correlation analysis
-  if (sum(numeric_columns) >= 2) {
     correlation_matrix <- cor(numeric_data)
     
     # Store the correlation matrix in the list with the category as the name
     correlation_matrices[[category]] <- correlation_matrix
-  } else {
-    cat("Insufficient numeric columns for correlation analysis in", commodity_name, "\n")
-  }
-}
+  
 
 # Visualize correlations for each category
 for (category in names(correlation_matrices)) {
   cat("\nCategory:", category)
   corrplot(correlation_matrices[[category]], method = "color", type = "lower", tl.col = "black", title = "Correlation Heatmap")
+}
+
 }
 
 
