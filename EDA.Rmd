@@ -92,56 +92,24 @@ for (commodity in commodities) {
 ```
 
 
-```{r, echo=FALSE, message=FALSE}
-COT_Cotton %>% select("Producer/Merchant/Processor/User Shorts") %>% autoplot() + labs(title = "COT Cotton", x = "Date", y = "Number of positions") 
-COT_Cocoa %>% select("Producer/Merchant/Processor/User Shorts") %>% autoplot() + labs(title = "COT Cocoa", x = "Date", y = "Number of positions") 
-COT_Silver %>% select("Producer/Merchant/Processor/User Shorts") %>% autoplot() + labs(title = "COT Silver", x = "Date", y = "Number of positions") 
-
-ShortLongCotton <- COT_Cotton %>% select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% gather(key = "Variable", value = "value", -Date)
-
-ShortLongCocoa <- COT_Cocoa %>% select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% gather(key = "Variable", value = "value", -Date)
-
-ShortLongSilver <- COT_Silver %>% select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% gather(key = "Variable", value = "value", -Date)
-
-ggplot(ShortLongCotton, aes(x = Date, y = value)) + 
-  geom_line(aes(color = Variable)) + 
-  scale_color_manual(values = c("darkred", "darkblue")) +
-  labs(title="Producer Longs vs. Shorts - Cotton")
-
-ggplot(ShortLongCocoa, aes(x = Date, y = value)) + 
-  geom_line(aes(color = Variable)) + 
-  scale_color_manual(values = c("darkred", "darkblue")) +
-  labs(title="Producer Longs vs. Shorts - Cocoa")
-
-ggplot(ShortLongSilver, aes(x = Date, y = value)) + 
-  geom_line(aes(color = Variable)) + 
-  scale_color_manual(values = c("darkred", "darkblue")) +
-  labs(title="Producer Longs vs. Shorts - Silver")
-
-```
-```{r createDF}
-commodity_dfs = list()
-sheets = excel_sheets(path="./data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx")
-for ( i in 1:length(sheets)){
-  tempdf = read_excel("./data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet=sheets[i])
-  commodity_dfs[[i]] = tempdf
-}
-
-```
-
-
 ```{r longs vs. shorts }
 
-for (i in 1:length(commodity_dfs)){
-  current = commodity_dfs[[i]] %>% as_tibble(index=Date, regular=FALSE) 
-  currentplot <- current %>% 
-    select("Date", "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% 
+library(ggplot2)
+library(tidyr)
+
+# Create and display time series plots for each data frame in the list
+for (i in 1:length(commodity_data_list)) {
+  current_data <- commodity_data_list[[i]]
+  
+  currentplot <- current_data %>% 
+    select(Date, "Producer/Merchant/Processor/User Shorts", "Producer/Merchant/Processor/User Longs") %>% 
     gather(key = "Variable", value = "value", -Date)
   
   plot = ggplot(currentplot, aes(x = Date, y = value)) + 
     geom_line(aes(color = Variable)) + 
     scale_color_manual(values = c("darkred", "darkblue")) +
-    labs(title=str_glue('Producer Longs vs. Shorts - {sheets[i]}'))
+    labs(title = str_glue('Producer Longs vs. Shorts - {names(commodity_data_list)[i]}'))
+  
   print(plot)
 }
 
@@ -150,43 +118,54 @@ for (i in 1:length(commodity_dfs)){
 
 
 ```{r}
-# Libraries
 library(ggplot2)
 library(dplyr)
 library(plotly)
 library(hrbrthemes)
 
-# Usual area chart
-COI <- COT_Cocoa %>%
-  ggplot( aes(x=Date, y= `Open Interest`)) +
-    geom_area(fill="#69b3a2", alpha=0.5) +
-    geom_line(color="#69b3a2") +
-    ylab("Open interest of cocoa") +
+# Create and display interactive area charts for "Open Interest" for each commodity
+for (commodity_name in names(commodity_data_list)) {
+  current_data <- commodity_data_list[[commodity_name]]
+  
+  open_interest_chart <- current_data %>%
+    ggplot(aes(x = Date, y = `Open Interest`)) +
+    geom_area(fill = "#69b3a2", alpha = 0.5) +
+    geom_line(color = "#69b3a2") +
+    ylab(paste("Open Interest of", commodity_name)) +
     theme_ipsum()
+    
+  interactive_area_chart <- ggplotly(open_interest_chart)
+  
+  # Display the interactive area chart
+  print(interactive_area_chart)
+}
 
-# Turn it interactive with ggplotly
-COI <- ggplotly(COI)
-COI
 
 ```
+
+
 ```{r}
-# Load required libraries
 library(dygraphs)
 library(xts)
 
-# Create xts object from your data
-PLS <- xts(data.frame(
-  date = COT_Cocoa$Date,  
-  producer_short = COT_Cocoa$`Producer/Merchant/Processor/User Longs`, 
-  producer_long = COT_Cocoa$`Producer/Merchant/Processor/User Shorts`), order.by = COT_Cocoa$Date)
+# Create dygraph for each commodity in commodity_data_list
+for (commodity_name in names(commodity_data_list)) {
+  current_data <- commodity_data_list[[commodity_name]]
+  
+  # Create xts object from your data
+  PLS <- xts(current_data, order.by = current_data$Date)
+  
+  # Create dygraph
+  P <- dygraph(PLS, main = paste("Producer Longs vs. Shorts -", commodity_name))
+  
+  # Display the dygraph
+  print(P)
+}
 
-# Create dygraph
-P <- dygraph(PLS)
-P
 
 ```
 
-
+Plots for each variables of each commodities
 ```{r}
 
 library(ggplot2)
@@ -217,12 +196,49 @@ for (i in 1:length(commodity_data_list)) {
 
 
 
+```{r}
+library(dygraphs)
+library(xts)
+
+# Create dygraph for each commodity in commodity_data_list
+for (commodity_name in names(commodity_data_list)) {
+  current_data <- commodity_data_list[[commodity_name]]
+  
+  # Create xts object with selected variables
+  PLS <- xts(data.frame(
+    Date = current_data$Date,
+    producer_short = current_data$`Producer/Merchant/Processor/User Longs`,
+    producer_long = current_data$`Producer/Merchant/Processor/User Shorts`
+  ), order.by = current_data$Date)
+  
+  # Create dygraph
+  P <- dygraph(PLS, main = paste("Producer Longs vs. Shorts -", commodity_name))
+  
+  # Display the dygraph
+  print(P)
+}
+
+```
 
 
 ```{r}
 
-COT_Cocoa$MA <- zoo::rollmean(COT_Cocoa$`Open Interest`, k = 10, fill = NA)
-plot(COT_Cocoa$Date, COT_Cocoa$MA, type = "l", xlab = "Date", ylab = "10-Day Moving Average", main = "10-Day Moving Average")
+library(xts)
+
+# Create and display 10-day moving average plots for each commodity
+for (commodity_name in names(commodity_data_list)) {
+  current_data <- commodity_data_list[[commodity_name]]
+  
+  # Calculate the 10-day moving average
+  current_data$MA <- zoo::rollmean(current_data$`Open Interest`, k = 10, fill = NA)
+  
+  # Create xts object
+  xts_data <- xts(current_data, order.by = current_data$Date)
+  
+  # Plot the 10-day moving average
+  plot(xts_data$Date, xts_data$MA, type = "l", xlab = "Date", ylab = "10-Day Moving Average", main = paste("10-Day Moving Average -", commodity_name))
+}
+
 
 
 ```
