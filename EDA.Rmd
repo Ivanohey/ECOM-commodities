@@ -59,7 +59,35 @@ COT_Palladium<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx
 COT_FedCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="FedCattle") %>% as_tsibble(index= Date, regular=FALSE)
 COT_LiveCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LiveCattle") %>% as_tsibble(index= Date, regular=FALSE)
 COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Copper<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Copper") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Coffee<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Coffee") %>% as_tsibble(index= Date, regular=FALSE)
 
+
+
+```
+
+```{r}
+library(readxl)
+library(tsibble)
+
+# Create an empty list to store the data frames
+commodity_data_list <- list()
+
+# List of commodity sheet names
+commodities <- c(
+  "Cotton", "Cocoa", "Silver", "CrudeOil", "Sugar", "NagGas", "HeatOil",
+  "Gasoline", "Corn", "Soybeans", "SoyOil", "SoyMeal", "Wheat", "Gold",
+  "Platinum", "Palladium", "FedCattle", "LiveCattle", "LeanHogs","Copper", "Coffee"
+)
+
+# Load data for each commodity and store it in the list
+for (commodity in commodities) {
+  data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>%
+    as_tsibble(index = Date, regular = FALSE)
+  commodity_data_list[[commodity]] <- data
+}
+
+# Now you have a list 'commodity_data_list' containing data frames for each commodity
 
 ```
 
@@ -101,11 +129,6 @@ for ( i in 1:length(sheets)){
 
 ```
 
-
-
-```{r}
-
-```
 
 ```{r longs vs. shorts }
 
@@ -165,17 +188,34 @@ P
 
 
 ```{r}
-COT_data_long <- COT_Cocoa %>%
-  gather(key = "Variable", value = "Value", -Date)
 
-ggplot(data = COT_data_long, aes(x = Date, y = Value)) +
-  geom_line() +
-  facet_wrap(~Variable, scales = "free_y") +
-  labs(title = "Time Series Plots for COT Cocoa",
-       x = "Date", y = "Value")
+library(ggplot2)
+
+
+# Create and display time series plots for each data frame in the list
+for (i in 1:length(commodity_data_list)) {
+  current_data <- commodity_data_list[[i]]
+  commodity_name <- names(commodity_data_list)[i]  # Get the name of the commodity
+  
+  COT_data_long <- gather(current_data, key = "Variable", value = "Value", -Date)
+  
+  plotTimeseries <- ggplot(data = COT_data_long, aes(x = Date, y = Value)) +
+    geom_line() +
+    facet_wrap(~Variable, scales = "free_y") +
+    labs(
+      title = paste("Time Series Plots for COT", commodity_name),  # Include commodity name in the title
+      x = "Date",
+      y = "Value"
+    )
+  
+  print(plotTimeseries)
+}
+
 
 
 ```
+
+
 
 
 
