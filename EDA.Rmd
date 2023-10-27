@@ -200,6 +200,24 @@ for (commodity_name in names(commodity_data_list)) {
 
 ```{r}
 
+# Define a function to categorize commodities
+categorize_commodity <- function(commodity_name) {
+  if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoybeanOil", "SoybeanMeal", "Wheat", "LeanHogs")) {
+    return("Agricultural Commodities")
+  } else if (commodity_name %in% c("FeederCattle", "LiveCattle", "LeanHogs")) {
+    return("Livestock")
+  } else if (commodity_name %in% c("Copper", "Gold", "Silver", "Platinum", "Palladium")) {
+    return("Metals")
+  } else if (commodity_name %in% c("CrudeOil", "NaturalGas", "HeatingOil")) {
+    return("Energy Commodities")
+  } else {
+    return("Other")
+  }
+}
+
+
+# Rest of your code remains the same
+
 # Create a list to store correlation matrices
 correlation_matrices <- list()
 
@@ -233,8 +251,6 @@ for (category in names(correlation_matrices)) {
 
 
 ```
-
-
 
 
 
