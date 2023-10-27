@@ -197,6 +197,47 @@ for (commodity_name in names(commodity_data_list)) {
 ```
 
 
+
+```{r}
+
+# Create a list to store correlation matrices
+correlation_matrices <- list()
+
+# Loop through the data frames
+for (commodity_name in names(commodity_data_list)) {
+  # Categorize the commodity
+  category <- categorize_commodity(commodity_name)
+  
+  # Identify which columns are numeric (excluding the "Date" column)
+  numeric_columns <- sapply(commodity_data_list[[commodity_name]], function(col) is.numeric(col) && !identical(col, commodity_data_list[[commodity_name]]$Date))
+  
+  # Select and calculate the correlation matrix for numeric columns
+  numeric_data <- commodity_data_list[[commodity_name]][, numeric_columns]
+  
+  # Check if there are enough numeric columns for correlation analysis
+  if (sum(numeric_columns) >= 2) {
+    correlation_matrix <- cor(numeric_data)
+    
+    # Store the correlation matrix in the list with the category as the name
+    correlation_matrices[[category]] <- correlation_matrix
+  } else {
+    cat("Insufficient numeric columns for correlation analysis in", commodity_name, "\n")
+  }
+}
+
+# Visualize correlations for each category
+for (category in names(correlation_matrices)) {
+  cat("\nCategory:", category)
+  corrplot(correlation_matrices[[category]], method = "color", type = "lower", tl.col = "black", title = "Correlation Heatmap")
+}
+
+
+```
+
+
+
+
+
 ```{r}
 
 library(xts)
