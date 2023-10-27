@@ -36,6 +36,14 @@ library(tsibble)
 library(fpp3)
 library(ggfortify)
 
+#Modelling
+library(reshape2)
+library(plotly)
+library(hrbrthemes)
+
+library(dygraphs)
+library(xts)
+
 wd = getwd()
 cat("Current working directory: ",wd)
 setwd(wd)
@@ -67,9 +75,6 @@ COT_Coffee<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", 
 ```
 
 ```{r}
-library(readxl)
-library(tsibble)
-
 # Create an empty list to store the data frames
 commodity_data_list <- list()
 
@@ -109,11 +114,6 @@ for (commodity in commodities) {
 
 
 ```{r}
-library(ggplot2)
-library(dplyr)
-library(plotly)
-library(hrbrthemes)
-
 # Create and display interactive area charts for "Open Interest" for each commodity
 for (commodity_name in names(commodity_data_list)) {
   current_data <- commodity_data_list[[commodity_name]]
@@ -137,8 +137,7 @@ for (commodity_name in names(commodity_data_list)) {
 
 
 ```{r}
-library(dygraphs)
-library(xts)
+
 
 # Create dygraph for each commodity in commodity_data_list
 for (commodity_name in names(commodity_data_list)) {
@@ -159,10 +158,6 @@ for (commodity_name in names(commodity_data_list)) {
 
 Plots for each variables of each commodities
 ```{r}
-
-library(ggplot2)
-
-
 # Create and display time series plots for each data frame in the list
 for (i in 1:length(commodity_data_list)) {
   current_data <- commodity_data_list[[i]]
@@ -189,9 +184,6 @@ for (i in 1:length(commodity_data_list)) {
 
 
 ```{r}
-library(dygraphs)
-library(xts)
-
 # Create dygraph for each commodity in commodity_data_list
 for (commodity_name in names(commodity_data_list)) {
   current_data <- commodity_data_list[[commodity_name]]
@@ -215,7 +207,6 @@ for (commodity_name in names(commodity_data_list)) {
 
 
 ```{r}
-
 # Define a function to categorize commodities
 categorize_commodity <- function(commodity_name) {
   if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoyOil", "SoyMeal", "Wheat", "LeanHogs")) {
@@ -303,31 +294,7 @@ for (commodity in names(commodity_data_list)){
   category_commodities[[current_category]] <- append(category_commodities[[current_category]], commodity)
 }
 
-# Loop through the data frames
-for (commodity_name in names(commodity_data_list)) {
-  
-  # Categorize the commodity
-  category <- categorize_commodity(commodity_name)
-  
-  # Identify which columns are numeric (excluding the "Date" column)
-  numeric_columns <- sapply(commodity_data_list[[commodity_name]], function(col) is.numeric(col) && !identical(col, commodity_data_list[[commodity_name]]$Date))
-  
-  # Select and calculate the correlation matrix for numeric columns
-  numeric_data <- commodity_data_list[[commodity_name]][, numeric_columns]
-  
-  # Check if there are enough numeric columns for correlation analysis
-  if (sum(numeric_columns) >= 2) {
-    correlation_matrix <- cor(numeric_data)
-    
-    # Store the correlation matrix in the list under the appropriate category
-    correlation_matrices[[category]] <- rbind(correlation_matrices[[category]], correlation_matrix)
-  } else {
-    cat("Insufficient numeric columns for correlation analysis in", commodity_name, "\n")
-  }
-}
 
-
-library(reshape2)
 # Loop through the data frames
 for (current_category in names(category_commodities)) {
   for(current_commodity in category_commodities[[current_category]]){
@@ -345,26 +312,13 @@ for (current_category in names(category_commodities)) {
     coord_fixed()
     print(plot)
   }
-  
-  
-  
-  
-  
 }
 
-# Visualize correlations for each category
-#for (category in names(correlation_matrices)) {
- # cat("\nCategory:", category)
-  #corrplot(correlation_matrices[[category]], method = "color", type = "lower", tl.col = "black", title = paste("Correlation Heatmap",category))
-#}
 
 ```
 
 
 ```{r}
-
-library(xts)
-
 # Create and display 10-day moving average plots for each commodity
 for (commodity_name in names(commodity_data_list)) {
   current_data <- commodity_data_list[[commodity_name]]
