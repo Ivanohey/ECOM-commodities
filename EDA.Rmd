@@ -178,7 +178,6 @@ for (i in 1:length(commodity_data_list)) {
 }
 
 
-
 ```
 
 
@@ -317,29 +316,62 @@ for (current_category in names(category_commodities)) {
 
 ```
 
-
+We change the Date variable to consecutive integers because of its irregularity. This modification will help us to manipulate and analyse time series.
 ```{r}
-# Create and display 10-day moving average plots for each commodity
-for (commodity_name in names(commodity_data_list)) {
-  current_data <- commodity_data_list[[commodity_name]]
-  
-  # Calculate the 10-day moving average
-  current_data$MA <- zoo::rollmean(current_data$`Open Interest`, k = 10, fill = NA)
-  
-  # Create xts object
-  xts_data <- xts(current_data, order.by = current_data$Date)
-  
-  # Plot the 10-day moving average
-  plot(xts_data$Date, xts_data$MA, type = "l", xlab = "Date", ylab = "10-Day Moving Average", main = paste("10-Day Moving Average -", commodity_name))
-}
 
+# Create a new list to store data frames with modified dates
+commodity_data_list_modified <- list()
+
+# Iterate through the original list and create a modified copy
+for (commodity in commodities) {
+  # Make a copy of the data from the original list
+  data_copy <- data.frame(commodity_data_list[[commodity]])
+  
+  # Modify the Date column to consecutive integers
+  data_copy$Date <- 1:nrow(data_copy)
+  
+  # Store the modified data in the new list
+  commodity_data_list_modified[[commodity]] <- as_tsibble(data_copy, index = Date, regular = FALSE)
+}
 
 
 ```
 
 
 
+```{r}
+# Create a new list to store standardized data frames
+standardized_commodity_data_list <- list()
+
+# Iterate through the modified data list and standardize each data frame
+for (commodity in commodities) {
+  # Get the modified data from the modified list
+  modified_data <- commodity_data_list_modified[[commodity]]
+  
+  # Standardize the data excluding the "Date" column
+  standardized_data <- scale(modified_data[, -1])
+  
+  # Create a new data frame with standardized values
+  standardized_data_frame <- as.data.frame(standardized_data)
+  
+  # Add back the "Date" column
+  standardized_data_frame$Date <- modified_data$Date
+  
+  # Convert to tsibble
+  tsibble_data <- as_tsibble(standardized_data_frame, index = Date, regular = FALSE)
+  
+  # Store the standardized data in the new list
+  standardized_commodity_data_list[[commodity]] <- tsibble_data
+}
+
+```
+
+```{r}
 
 
 
 
+```
+
+
+We do a PCA to lower the dimensionality of the data in order to retain the most significant variables to our analysis. 
