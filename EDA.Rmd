@@ -337,7 +337,7 @@ for (commodity in commodities) {
 
 ```
 
-
+Then we standardize our data.
 
 ```{r}
 # Create a new list to store standardized data frames
@@ -366,12 +366,61 @@ for (commodity in commodities) {
 
 ```
 
+
+
 ```{r}
+# Create a new list to store PCA results
+pca_results_list <- list()
 
-
-
+# Iterate through the standardized commodity data list and perform PCA
+for (commodity in commodities) {
+  # Get the standardized data from the standardized list
+  standardized_data <- standardized_commodity_data_list[[commodity]]
+  
+  # Remove "Date" column
+  trading_vars <- standardized_data[, -which(names(standardized_data) == "Date")]
+  
+  # Perform PCA on the selected variables
+  pca_result <- prcomp(trading_vars, scale. = TRUE)
+  
+  # Store the PCA result in the new list
+  pca_results_list[[commodity]] <- pca_result
+}
+pca_result
 
 ```
 
+```{r}
+# Create a new list to store scree plots
+scree_plots_list <- list()
+
+# Iterate through the PCA results and create scree plots
+for (commodity in commodities) {
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Create scree plot
+  scree_plot <- plot(pca_result, type = "l", main = paste("Scree Plot -", commodity))
+  
+  # Store the scree plot in the list
+  scree_plots_list[[commodity]] <- scree_plot
+}
+
+```
+```{r}
+# Create a new list to store biplots
+biplots_list <- list()
+
+# Iterate through the PCA results and create biplots
+for (commodity in commodities) {
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Create biplot
+  biplot_result <- biplot(pca_result, main = paste("Biplot -", commodity))
+  
+  # Store the biplot in the list
+  biplots_list[[commodity]] <- biplot_result
+}
+
+```
 
 We do a PCA to lower the dimensionality of the data in order to retain the most significant variables to our analysis. 
