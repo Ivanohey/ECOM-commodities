@@ -1,0 +1,84 @@
+```{r import_data}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(lubridate)
+library(DataExplorer)
+library(corrplot)
+library(GGally)
+library(DT)
+
+#web scrapping
+#library(rvest)
+
+#cleaning 
+library(summarytools)
+library(imputeTS)
+
+#Forecasting 
+library(tsibble)
+library(fpp3)
+library(ggfortify)
+
+```
+
+```{r}
+Daily_futures_prices <- read_excel("data/DailyFuturePrices_2003_2023.xlsx", sheet="Clean") %>% select(c("Date", "Cotton", "Coffee", "Cocoa", "Sugar", "Corn", "Soybeans", "Soybean Oil", "Soybean Meal",	"Wheat HRW KC",	"Feeder Cattle", "Live Cattle",	"Lean Hogs",	"Copper", "Gold", "Silver",	"Platinum",	"Palladium", "Crude Oil",	"Natural Gas", "Heating Oil"))
+
+Commos = c("Cotton", "Coffee", "Cocoa", "Sugar", "Corn", "Soybeans", "Soybean Oil", "Soybean Meal",	"Wheat HRW KC",	"Feeder Cattle", "Live Cattle",	"Lean Hogs",	"Copper", "Gold", "Silver",	"Platinum",	"Palladium", "Crude Oil",	"Natural Gas", "Heating Oil")
+
+Daily_futures_prices[is.na(Daily_futures_prices)] <- 0
+
+Daily_futures_prices <- as_tsibble(Daily_futures_prices, index = Date, regular = FALSE)
+
+```
+
+```{r}
+
+Cotton_futures <- Daily_futures_prices %>%
+    ggplot(aes(x = Date, y = Cotton)) +
+    geom_area(fill = "#69b3a2", alpha = 0.5) +
+    geom_line(color = "#69b3a2") +
+    ylab(paste("Futures Price of Cotton")) +
+    theme_ipsum()
+    
+  interactive_futures_price_chart <- ggplotly(Cotton_futures)
+  
+  # Display the interactive area chart
+  print(interactive_futures_price_chart)
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(hrbrthemes)
+
+# # Create and display interactive area charts for "Open Interest" for each commodity
+# for (commodity_name in Daily_futures_prices) {
+#   
+#  futures_prices_chart <- Daily_futures_prices %>%
+#     ggplot(aes(x = Date, y = `commodity_name`)) +
+#     geom_area(fill = "#69b3a2", alpha = 0.5) +
+#     geom_line(color = "#69b3a2") +
+#     ylab(paste("Futures Price of", commodity_name)) +
+#     theme_ipsum()
+#   
+#   interactive_futures_price_chart <- ggplotly(futures_prices_chart)
+#   
+#   # Display the interactive area chart
+#   print(interactive_futures_price_chart)
+# }
+
+
+
+```
+
+
