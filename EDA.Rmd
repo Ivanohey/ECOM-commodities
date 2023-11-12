@@ -135,9 +135,9 @@ for (commodity_name in names(commodity_data_list)) {
 
 ```
 
+From the following dygraphs, we can see that Open interest, total reportable shorts and total reportable longs are highly correlated.
 
 ```{r}
-
 
 # Create dygraph for each commodity in commodity_data_list
 for (commodity_name in names(commodity_data_list)) {
@@ -386,9 +386,25 @@ for (commodity in commodities) {
   # Store the PCA result in the new list
   pca_results_list[[commodity]] <- pca_result
 }
-pca_result
+pca_results_list
 
 ```
+
+```{r}
+# Iterate through the list of PCA results and print summaries
+for (commodity in commodities) {
+  # Get the PCA result from the list
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Print the summary
+  cat("Summary for", commodity, ":\n")
+  print(summary(pca_result))
+  cat("\n")
+}
+
+```
+
+
 
 ```{r}
 # Create a new list to store scree plots
@@ -407,6 +423,7 @@ for (commodity in commodities) {
 
 ```
 ```{r}
+
 # Create a new list to store biplots
 biplots_list <- list()
 
@@ -422,5 +439,40 @@ for (commodity in commodities) {
 }
 
 ```
+```{r}
+# Create a new list to store top 5 variables for each PCA
+top_variables_list <- list()
+
+# Iterate through the PCA results
+for (commodity in commodities) {
+  # Get the PCA result for the current commodity
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Extract loadings for each principal component
+  loadings <- pca_result$rotation
+  
+  # Create a matrix to store top 5 variables for each PC
+  top_variables_matrix <- matrix(NA, nrow = 5, ncol = ncol(loadings))
+  
+  # Loop through each principal component
+  for (pc in 1:5) {  # Adjust to the number of components you are interested in
+    # Identify the top 5 variables with highest absolute loadings
+    top_loading_variables <- names(loadings[, pc][order(-abs(loadings[, pc]))[1:5]])
+    
+    # Store the top variables in the matrix
+    top_variables_matrix[, pc] <- top_loading_variables
+  }
+  
+  # Store the top variables matrix in the list
+  top_variables_list[[commodity]] <- top_variables_matrix
+}
+
+# Access the top 5 variables for a specific commodity and principal component
+# For example, for the first commodity and PC1:
+top_variables_list[["Commodity1"]][, 1]
+
+
+```
+
 
 We do a PCA to lower the dimensionality of the data in order to retain the most significant variables to our analysis. 
