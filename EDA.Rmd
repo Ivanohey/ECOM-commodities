@@ -366,44 +366,60 @@ for (commodity in commodities) {
 
 ```
 
+Covariance matrix:
+
+```{r}
+# Create a new list to store covariance matrices
+covariance_matrices_list <- list()
+
+# Iterate through the standardized data list and calculate the covariance matrix
+for (commodity in commodities) {
+  # Get the standardized data from the standardized list
+  standardized_data <- standardized_commodity_data_list[[commodity]]
+  
+  # Exclude the "Date" column
+  trading_vars <- as.matrix(standardized_data[, -17])
+  
+  # Calculate the covariance matrix
+  cov_matrix <- cov(trading_vars)
+  
+  # Store the covariance matrix in the new list
+  covariance_matrices_list[[commodity]] <- cov_matrix
+}
+
+covariance_matrices_list
+```
+
+
+
+
+
+
+
+
+
+
 
 
 ```{r}
 # Create a new list to store PCA results
 pca_results_list <- list()
 
-# Iterate through the standardized commodity data list and perform PCA
+# Iterate through the covariance matrices and perform PCA
 for (commodity in commodities) {
-  # Get the standardized data from the standardized list
-  standardized_data <- standardized_commodity_data_list[[commodity]]
+  # Get the covariance matrix from the list
+  cov_matrix <- covariance_matrices_list[[commodity]]
   
-  # Remove "Date" column
-  trading_vars <- standardized_data[, -which(names(standardized_data) == "Date")]
-  
-  # Perform PCA on the selected variables
-  pca_result <- prcomp(trading_vars, scale. = TRUE)
+  # Perform PCA using prcomp
+  pca_result <- prcomp(cov_matrix, scale. = TRUE)
   
   # Store the PCA result in the new list
   pca_results_list[[commodity]] <- pca_result
 }
+
 pca_results_list
 
 ```
-
-```{r}
-# Iterate through the list of PCA results and print summaries
-for (commodity in commodities) {
-  # Get the PCA result from the list
-  pca_result <- pca_results_list[[commodity]]
-  
-  # Print the summary
-  cat("Summary for", commodity, ":\n")
-  print(summary(pca_result))
-  cat("\n")
-}
-
-```
-
 
 
 ```{r}
@@ -414,16 +430,21 @@ scree_plots_list <- list()
 for (commodity in commodities) {
   pca_result <- pca_results_list[[commodity]]
   
+  # Extract eigenvalues
+  eigenvalues <- pca_result$sdev^2
+  
   # Create scree plot
-  scree_plot <- plot(pca_result, type = "l", main = paste("Scree Plot -", commodity))
+  scree_plot <- plot(1:length(eigenvalues), eigenvalues, type = "b", 
+                     main = paste("Scree Plot -", commodity),
+                     xlab = "Principal Component", ylab = "Eigenvalue")
   
   # Store the scree plot in the list
   scree_plots_list[[commodity]] <- scree_plot
 }
 
+scree_plots_list
 ```
 ```{r}
-
 # Create a new list to store biplots
 biplots_list <- list()
 
@@ -432,47 +453,80 @@ for (commodity in commodities) {
   pca_result <- pca_results_list[[commodity]]
   
   # Create biplot
-  biplot_result <- biplot(pca_result, main = paste("Biplot -", commodity))
+  biplot <- biplot(pca_result, scale = 0)
+  
+  # Add title to the biplot
+  title <- paste("Biplot -", commodity)
+  title(main = title)
   
   # Store the biplot in the list
-  biplots_list[[commodity]] <- biplot_result
+  biplots_list[[commodity]] <- biplot
 }
 
+biplots_list
 ```
+
+
+
+
+
+We want to retain the principal components associated with eigenvalues above the "elbow" in the scree plot.
+
 ```{r}
-# Create a new list to store top 5 variables for each PCA
-top_variables_list <- list()
+# Create a new list to store the most significant variables
+most_significant_variables_list <- list()
 
 # Iterate through the PCA results
 for (commodity in commodities) {
-  # Get the PCA result for the current commodity
   pca_result <- pca_results_list[[commodity]]
   
-  # Extract loadings for each principal component
+  # Extract loadings from the PCA result
   loadings <- pca_result$rotation
   
-  # Create a matrix to store top 5 variables for each PC
-  top_variables_matrix <- matrix(NA, nrow = 5, ncol = ncol(loadings))
+  # Identify the most significant variable for each principal component
+  most_significant_variables <- apply(loadings, 2, function(pc_loadings) {
+    variable_index <- which.max(abs(pc_loadings))
+    variable_name <- colnames(loadings)[variable_index]
+    return(variable_name)
+  })
   
-  # Loop through each principal component
-  for (pc in 1:5) {  # Adjust to the number of components you are interested in
-    # Identify the top 5 variables with highest absolute loadings
-    top_loading_variables <- names(loadings[, pc][order(-abs(loadings[, pc]))[1:5]])
-    
-    # Store the top variables in the matrix
-    top_variables_matrix[, pc] <- top_loading_variables
-  }
-  
-  # Store the top variables matrix in the list
-  top_variables_list[[commodity]] <- top_variables_matrix
+  # Store the most significant variables in the list
+  most_significant_variables_list[[commodity]] <- most_significant_variables
 }
 
-# Access the top 5 variables for a specific commodity and principal component
-# For example, for the first commodity and PC1:
-top_variables_list[["Commodity1"]][, 1]
+# Print or use the most significant variables list as needed
+print(most_significant_variables_list)
 
+```
+The labels "PC14," "PC5," etc., are likely the names or labels of the original variables in your dataset. These labels indicate which variables contribute the most to the variability captured by each principal component.
+
+
+```{r}
+# Create a list to store the cumulative variance explained for each commodity
+cumulative_variance_explained_list <- list()
+
+# Iterate through the PCA results
+for (commodity in commodities) {
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Access eigenvalues and calculate cumulative variance
+  eigenvalues <- pca_result$sdev^2
+  cumulative_variance <- cumsum(eigenvalues) / sum(eigenvalues)
+  
+  # Store the cumulative variance explained in the list
+  cumulative_variance_explained_list[[commodity]] <- cumulative_variance
+}
+
+# Select the number of principal components based on cumulative variance explained
+# Adjust the threshold as needed
+threshold <- 0.95
+selected_components_list <- lapply(cumulative_variance_explained_list, function(cum_var) {
+  which(cum_var >= threshold)[1]
+})
+
+# Print or use the selected components list as needed
+print(selected_components_list)
 
 ```
 
 
-We do a PCA to lower the dimensionality of the data in order to retain the most significant variables to our analysis. 
