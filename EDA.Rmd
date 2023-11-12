@@ -390,15 +390,7 @@ for (commodity in commodities) {
 covariance_matrices_list
 ```
 
-
-
-
-
-
-
-
-
-
+PCA 
 
 
 ```{r}
@@ -421,6 +413,7 @@ pca_results_list
 
 ```
 
+SCREE PLOTS
 
 ```{r}
 # Create a new list to store scree plots
@@ -444,6 +437,8 @@ for (commodity in commodities) {
 
 scree_plots_list
 ```
+
+BIPLOTS
 ```{r}
 # Create a new list to store biplots
 biplots_list <- list()
@@ -468,9 +463,9 @@ biplots_list
 
 
 
-
-
 We want to retain the principal components associated with eigenvalues above the "elbow" in the scree plot.
+
+VARIABLES SELECTION
 
 ```{r}
 # Create a new list to store the most significant variables
@@ -499,6 +494,8 @@ print(most_significant_variables_list)
 
 ```
 The labels "PC14," "PC5," etc., are likely the names or labels of the original variables in your dataset. These labels indicate which variables contribute the most to the variability captured by each principal component.
+
+NUMBER OF PCA TO SELECT
 
 
 ```{r}
