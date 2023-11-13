@@ -30,9 +30,23 @@ Daily_futures_prices <- read_excel("data/DailyFuturePrices_2003_2023.xlsx", shee
 
 Commos = c("Cotton", "Coffee", "Cocoa", "Sugar", "Corn", "Soybeans", "Soybean Oil", "Soybean Meal",	"Wheat HRW KC",	"Feeder Cattle", "Live Cattle",	"Lean Hogs",	"Copper", "Gold", "Silver",	"Platinum",	"Palladium", "Crude Oil",	"Natural Gas", "Heating Oil")
 
-Daily_futures_prices[is.na(Daily_futures_prices)] <- 0
 
-Daily_futures_prices <- as_tsibble(Daily_futures_prices, index = Date, regular = FALSE)
+columns_to_process <- names(Daily_futures_prices)[-1]
+
+# Iterate each column excluding the first column
+for (col_name in columns_to_process) {
+
+  mean_value <- mean(Daily_futures_prices[[col_name]], na.rm = TRUE)
+
+  # Replace NA values with the mean in the current column
+  Daily_futures_prices[is.na(Daily_futures_prices[, col_name]), col_name] <- mean_value
+}
+
+#check if there is any NA left:
+colSums(is.na(Daily_futures_prices))
+#table overview:
+Daily_futures_prices
+
 
 ```
 
