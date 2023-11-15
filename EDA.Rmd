@@ -526,4 +526,45 @@ print(selected_components_list)
 
 ```
 
+```{r}
+library(tsibble)
+library(fable)
+library(ggplot2)
+
+# Assuming COT_Cotton is your tsibble
+# Assuming you have a column 'Open_Interest' and 'Date'
+
+# Convert 'Date' to Date format
+COT_Cotton$Date <- as.Date(COT_Cotton$Date)
+
+# Create a tsibble with regular dates starting from January 2006
+regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(COT_Cotton)))
+
+# Merge COT_Cotton and regular_tsibble based on nothing
+merged_data <- bind_cols(COT_Cotton %>% select(-Date), regular_tsibble)
+
+merged_data <- as.tsibble(merged_data)
+
+# Fit the ETS model using the merged data
+fit <- merged_data %>%
+  model(ETS(`Open Interest` ~ error("A") + trend("N") + season("N")))
+
+# Forecast for the next 5 observations
+fc <- fit %>%
+  forecast(h = 5)
+
+# Merge the forecasts onto the regular dates
+merged_data_forecast <- bind_cols(regular_tsibble, as_tibble(fc))
+
+# Plot the forecast
+autoplot(merged_data_forecast, aes(x = date, y = `Open Interest`)) +
+  geom_line(aes(y = .fitted), col = "#D55E00") +
+  labs(y = "Open Interest", title = "Forecast: Cotton Open Interest") +
+  guides(colour = "none")
+
+
+
+
+
+```
 
