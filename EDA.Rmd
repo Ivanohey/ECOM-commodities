@@ -567,7 +567,7 @@ fc |>
 Multivariate F avec Coffee, cocoa et sugar ? ESSAI FAIL(pb data regroupement)
 peut etre multivariate avec une commo et plusieurs variables de son COT (A FAIRE)
 Also, test ARIMA à faire.
-```{r}
+```{r
 library(tsibble)
 library(fable)
 library(dplyr)
@@ -604,5 +604,41 @@ fc2 |>
 
 
 
+```
+
+```{r}
+
+```
+
+ETS des variables correlees du Cotton
+```{r}
+library(tsibble)
+library(fable)
+library(ggplot2)
+
+
+# Create a tsibble with regular dates starting from January 2006
+regular_tsibble3 <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(COT_Cotton)))
+
+# Merge COT_Cotton and regular_tsibble based on nothing
+merged_data3 <- bind_cols(COT_Cotton, regular_tsibble3)
+
+merged_data3 <- as_tsibble(merged_data3 %>% select(-Date), key = NULL)
+
+# Fit the ETS model using the merged data
+fit3 <- merged_data3 %>%
+  model(
+    ARIMA(`Open Interest` ~ `Total Reportable Longs` + `Total Reportable Shorts`))
+# Forecast for the next observations
+fc3 <- fit3 %>%
+  forecast(h = 1)
+fc3
+ 
+# Plot the forecast
+fc3 |>
+  autoplot(merged_data3) +
+   geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit3)) +
+   labs(y = "Open Interest", title = "Forecast: Cotton Open Interest based on multivariate ETS") +
+   guides(colour = "none")
 ```
 
