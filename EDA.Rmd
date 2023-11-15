@@ -534,8 +534,10 @@ library(ggplot2)
 # Assuming COT_Cotton is your tsibble
 # Assuming you have a column 'Open_Interest' and 'Date'
 
+# Convert 'Date' to Date format
+COT_Cotton$Date <- as.Date(COT_Cotton$Date)
 newdata <- COT_Cotton %>%
-  select(Date, `Open Interest`)
+  select(Date, `Open Interest`, `Total Reportable Longs` , `Total Reportable Shorts` )
 
 
 # Create a tsibble with regular dates starting from January 2006
@@ -617,21 +619,28 @@ library(fable)
 library(ggplot2)
 
 
+COT_Cotton$Date <- as.Date(COT_Cotton$Date)
+
+newdata2 <- COT_Cotton %>% select(Date, `Open Interest`, `Total Reportable Longs`,`Total Reportable Shorts`)
+
 # Create a tsibble with regular dates starting from January 2006
-regular_tsibble3 <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(COT_Cotton)))
+regular_tsibble3 <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(newdata2)))
 
 # Merge COT_Cotton and regular_tsibble based on nothing
-merged_data3 <- bind_cols(COT_Cotton, regular_tsibble3)
+merged_data3 <- bind_cols(newdata2, regular_tsibble3)
 
 merged_data3 <- as_tsibble(merged_data3 %>% select(-Date), key = NULL)
+
 
 # Fit the ETS model using the merged data
 fit3 <- merged_data3 %>%
   model(
     ARIMA(`Open Interest` ~ `Total Reportable Longs` + `Total Reportable Shorts`))
+
 # Forecast for the next observations
 fc3 <- fit3 %>%
   forecast(h = 1)
+
 fc3
  
 # Plot the forecast
