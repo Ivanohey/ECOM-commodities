@@ -534,35 +534,73 @@ library(ggplot2)
 # Assuming COT_Cotton is your tsibble
 # Assuming you have a column 'Open_Interest' and 'Date'
 
-# Convert 'Date' to Date format
-COT_Cotton$Date <- as.Date(COT_Cotton$Date)
+newdata <- COT_Cotton %>%
+  select(Date, `Open Interest`)
+
 
 # Create a tsibble with regular dates starting from January 2006
-regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(COT_Cotton)))
+regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(newdata)))
 
 # Merge COT_Cotton and regular_tsibble based on nothing
-merged_data <- bind_cols(COT_Cotton %>% select(-Date), regular_tsibble)
+merged_data <- bind_cols(newdata, regular_tsibble)
 
-merged_data <- as.tsibble(merged_data)
+merged_data <- as_tsibble(merged_data%>% select(-Date), key = NULL)
 
 # Fit the ETS model using the merged data
 fit <- merged_data %>%
   model(ETS(`Open Interest` ~ error("A") + trend("N") + season("N")))
 
-# Forecast for the next 5 observations
+# Forecast for the next observations
 fc <- fit %>%
-  forecast(h = 5)
+  forecast(h = 1)
+fc
+ 
+# Plot the forecast
+fc |>
+  autoplot(merged_data) +
+   geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit)) +
+   labs(y = "Open Interest", title = "Forecast: Cotton Open Interest") +
+   guides(colour = "none")
 
-# Merge the forecasts onto the regular dates
-merged_data_forecast <- bind_cols(regular_tsibble, as_tibble(fc))
+
+```
+Multivariate F avec Coffee, cocoa et sugar ? ESSAI FAIL(pb data regroupement)
+peut etre multivariate avec une commo et plusieurs variables de son COT (A FAIRE)
+Also, test ARIMA à faire.
+```{r}
+library(tsibble)
+library(fable)
+library(dplyr)
+
+# Assuming commodity_data_list is your list of datasets
+
+# Extract Open_Interest for Cocoa, Sugar, and Coffee
+open_interest_data <- commodity_data_list %>%
+  bind_rows(.id = "commodity") %>%
+  filter(commodity %in% c("Cocoa", "Sugar", "Coffee")) %>%
+  select(-Date) %>%
+  rename(Open_Interest = `Open Interest`)
+
+# Create a regular tsibble with dates starting from January 2006
+regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(open_interest_data)))
+
+# Bind the regular tsibble with the Open Interest data
+merged_data2 <- bind_cols(regular_tsibble, open_interest_data)
+
+# Fit a multivariate ETS model
+fit2 <- merged_data2 %>%
+  model(ETS(Open_Interest ~ error("A") + trend("N") + season("N") | commodity))
+
+# Forecast for the next observations
+fc2 <- fit2 %>%
+  forecast(h = 1)
 
 # Plot the forecast
-autoplot(merged_data_forecast, aes(x = date, y = `Open Interest`)) +
-  geom_line(aes(y = .fitted), col = "#D55E00") +
-  labs(y = "Open Interest", title = "Forecast: Cotton Open Interest") +
-  guides(colour = "none")
-
-
+fc2 |>
+  autoplot(merged_data2) +
+   geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit2)) +
+   labs(y = "Open Interest", title = "Forecast: Multivariate ETS for Open Interest") +
+   guides(colour = "none")
 
 
 
