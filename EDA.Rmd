@@ -465,7 +465,7 @@ biplots_list
 
 We want to retain the principal components associated with eigenvalues above the "elbow" in the scree plot.
 
-VARIABLES SELECTION
+VARIABLES SELECTION = ASK Professor BOLDI FOR THE METHOD PLS
 
 ```{r}
 # Create a new list to store the most significant variables
