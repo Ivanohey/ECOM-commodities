@@ -4,12 +4,51 @@ date: "2023-11-18"
 output: html_document
 ---
 
-```{r Import, include=FALSE}
+```{r Import and clean names, include=FALSE}
+# Create an empty list to store the data frames
+commodity_data_list <- list()
+
+# List of commodity sheet names
+commodities <- c(
+  "Cotton", "Cocoa", "Silver", "CrudeOil", "Sugar", "NagGas", "HeatOil",
+  "Gasoline", "Corn", "Soybeans", "SoyOil", "SoyMeal", "Wheat", "Gold",
+  "Platinum", "Palladium", "FedCattle", "LiveCattle", "LeanHogs","Copper", "Coffee"
+)
+
+# Load data for each commodity and store it in the list
+for (commodity in commodities) {
+  data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>% rename(
+    "Open_Interest" = "Open Interest",
+    "Producer_Longs"="Producer/Merchant/Processor/User Longs",
+    "Producer_Shorts"="Producer/Merchant/Processor/User Shorts",
+    "Swap_Dealer_Longs"="Swap Dealer Longs",
+    "Swap_Dealer_Shorts"="Swap Dealer Shorts",
+    "Swap_Dealer_Spreads"="Swap Dealer Spreads",
+    "Money_Manager_Longs"="Money Manager Longs",
+    "Money_Manager_Shorts"="Money Manager Shorts",
+    "Money_Manager_Spreads"="Money Manager Spreads",
+    "Other_Reportable_Longs"="Other Reportable Longs",
+    "Other_Reportable_Shorts"="Other Reportable Shorts",
+    "Other_Reportable_Shorts"="Other Reportable Shorts",
+    "Total_Reportable_Longs"="Total Reportable Longs",
+    "Total_Reportable_Shorts"="Total Reportable Shorts",
+    "Non_Reportable_Longs"="Non Reportable Longs",
+    "Non_Reportable_Shorts"="Non Reportable Shorts") %>% as_tsibble(index = Date, regular = FALSE)
+  commodity_data_list[[commodity]] <- data
+}
+
+
+```
+
+
+
+
+```{r creating COT dfs}
 #Softs
-COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Coffee<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Coffee") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Sugar<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Sugar") %>% as_tsibble(index= Date, regular=FALSE)
+COT_Cotton<- commodity_data_list[["Cotton"]]
+COT_Cocoa<- commodity_data_list[["Cocoa"]]
+COT_Coffee<- commodity_data_list[["Coffee"]]
+COT_Sugar<- commodity_data_list[["Sugar"]]
 
 
 #Other
@@ -30,13 +69,6 @@ COT_Sugar<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", s
 # COT_LiveCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LiveCattle") %>% as_tsibble(index= Date, regular=FALSE)
 # COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
 # COT_Copper<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Copper") %>% as_tsibble(index= Date, regular=FALSE)
-
-```
-
-
-
-
-```{r }
 
 
 

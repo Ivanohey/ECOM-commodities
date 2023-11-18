@@ -29,6 +29,7 @@ library(imputeTS)
 library(tsibble)
 library(fpp3)
 library(ggfortify)
+library(fable)
 
 #Modelling
 library(reshape2)

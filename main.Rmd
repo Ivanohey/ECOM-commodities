@@ -6,6 +6,6 @@ output: html_document
 ---
 
 
-```{r child = c('setup.Rmd', 'cleaning.Rmd', 'EDA.Rmd', 'models.Rmd', 'concl.Rmd')}
+```{r child = c('setup.Rmd', 'cleaning.Rmd', 'EDA.Rmd')}
 
 ```

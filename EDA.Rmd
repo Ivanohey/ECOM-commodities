@@ -12,64 +12,64 @@ output:
 ---
 
 ```{r import_data}
-COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Silver<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Silver") %>% as_tsibble(index= Date, regular=FALSE)
-COT_CrudeOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="CrudeOil") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Sugar<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Sugar") %>% as_tsibble(index= Date, regular=FALSE)
-COT_NagGas<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="NagGas") %>% as_tsibble(index= Date, regular=FALSE)
-COT_HeatOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="HeatOil") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Gasoline<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gasoline") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Corn<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Corn") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Soybeans<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Soybeans") %>% as_tsibble(index= Date, regular=FALSE)
-COT_SoyOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyOil") %>% as_tsibble(index= Date, regular=FALSE)
-COT_SoyMeal<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyMeal") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Wheat<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Wheat") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Gold<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gold") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Platinum<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Platinum") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Palladium<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Palladium") %>% as_tsibble(index= Date, regular=FALSE)
-COT_FedCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="FedCattle") %>% as_tsibble(index= Date, regular=FALSE)
-COT_LiveCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LiveCattle") %>% as_tsibble(index= Date, regular=FALSE)
-COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Copper<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Copper") %>% as_tsibble(index= Date, regular=FALSE)
-COT_Coffee<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Coffee") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Silver<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Silver") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_CrudeOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="CrudeOil") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Sugar<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Sugar") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_NagGas<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="NagGas") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_HeatOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="HeatOil") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Gasoline<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gasoline") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Corn<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Corn") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Soybeans<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Soybeans") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_SoyOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyOil") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_SoyMeal<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyMeal") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Wheat<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Wheat") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Gold<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gold") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Platinum<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Platinum") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Palladium<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Palladium") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_FedCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="FedCattle") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_LiveCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LiveCattle") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Copper<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Copper") %>% as_tsibble(index= Date, regular=FALSE)
+# COT_Coffee<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Coffee") %>% as_tsibble(index= Date, regular=FALSE)
 
 
 
 ```
 
 ```{r}
-# Create an empty list to store the data frames
-commodity_data_list <- list()
-
-# List of commodity sheet names
-commodities <- c(
-  "Cotton", "Cocoa", "Silver", "CrudeOil", "Sugar", "NagGas", "HeatOil",
-  "Gasoline", "Corn", "Soybeans", "SoyOil", "SoyMeal", "Wheat", "Gold",
-  "Platinum", "Palladium", "FedCattle", "LiveCattle", "LeanHogs","Copper", "Coffee"
-)
-
-# Load data for each commodity and store it in the list
-for (commodity in commodities) {
-  data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>% rename(
-    "Open_Interest" = "Open Interest",
-    "Producer_Longs"="Producer/Merchant/Processor/User Longs",
-    "Producer_Shorts"="Producer/Merchant/Processor/User Shorts",
-    "Swap_Dealer_Longs"="Swap Dealer Longs",
-    "Swap_Dealer_Shorts"="Swap Dealer Shorts",
-    "Swap_Dealer_Spreads"="Swap Dealer Spreads",
-    "Money_Manager_Longs"="Money Manager Longs",
-    "Money_Manager_Shorts"="Money Manager Shorts",
-    "Money_Manager_Spreads"="Money Manager Spreads",
-    "Other_Reportable_Longs"="Other Reportable Longs",
-    "Other_Reportable_Shorts"="Other Reportable Shorts",
-    "Other_Reportable_Shorts"="Other Reportable Shorts",
-    "Total_Reportable_Longs"="Total Reportable Longs",
-    "Total_Reportable_Shorts"="Total Reportable Shorts",
-    "Non_Reportable_Longs"="Non Reportable Longs",
-    "Non_Reportable_Shorts"="Non Reportable Shorts") %>% as_tsibble(index = Date, regular = FALSE)
-  commodity_data_list[[commodity]] <- data
-}
+# # Create an empty list to store the data frames
+# commodity_data_list <- list()
+# 
+# # List of commodity sheet names
+# commodities <- c(
+#   "Cotton", "Cocoa", "Silver", "CrudeOil", "Sugar", "NagGas", "HeatOil",
+#   "Gasoline", "Corn", "Soybeans", "SoyOil", "SoyMeal", "Wheat", "Gold",
+#   "Platinum", "Palladium", "FedCattle", "LiveCattle", "LeanHogs","Copper", "Coffee"
+# )
+# 
+# # Load data for each commodity and store it in the list
+# for (commodity in commodities) {
+#   data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>% rename(
+#     "Open_Interest" = "Open Interest",
+#     "Producer_Longs"="Producer/Merchant/Processor/User Longs",
+#     "Producer_Shorts"="Producer/Merchant/Processor/User Shorts",
+#     "Swap_Dealer_Longs"="Swap Dealer Longs",
+#     "Swap_Dealer_Shorts"="Swap Dealer Shorts",
+#     "Swap_Dealer_Spreads"="Swap Dealer Spreads",
+#     "Money_Manager_Longs"="Money Manager Longs",
+#     "Money_Manager_Shorts"="Money Manager Shorts",
+#     "Money_Manager_Spreads"="Money Manager Spreads",
+#     "Other_Reportable_Longs"="Other Reportable Longs",
+#     "Other_Reportable_Shorts"="Other Reportable Shorts",
+#     "Other_Reportable_Shorts"="Other Reportable Shorts",
+#     "Total_Reportable_Longs"="Total Reportable Longs",
+#     "Total_Reportable_Shorts"="Total Reportable Shorts",
+#     "Non_Reportable_Longs"="Non Reportable Longs",
+#     "Non_Reportable_Shorts"="Non Reportable Shorts") %>% as_tsibble(index = Date, regular = FALSE)
+#   commodity_data_list[[commodity]] <- data
+# }
 
 # Now you have a list 'commodity_data_list' containing data frames for each commodity
 
@@ -77,7 +77,7 @@ for (commodity in commodities) {
 
 
 
-```{r}
+```{r Plotting open interests}
 # Create and display interactive area charts for "Open Interest" for each commodity
 for (commodity_name in names(commodity_data_list)) {
   current_data <- commodity_data_list[[commodity_name]]
@@ -101,7 +101,7 @@ for (commodity_name in names(commodity_data_list)) {
 
 From the following dygraphs, we can see that Open interest, total reportable shorts and total reportable longs are highly correlated.
 
-```{r}
+```{r Plotting all variables for each commodity}
 
 # Create dygraph for each commodity in commodity_data_list
 for (commodity_name in names(commodity_data_list)) {
@@ -121,7 +121,7 @@ for (commodity_name in names(commodity_data_list)) {
 ```
 
 Plots for each variables of each commodities
-```{r}
+```{r Plotting time series for each variable of each commodity}
 # Create and display time series plots for each data frame in the list
 for (i in 1:length(commodity_data_list)) {
   current_data <- commodity_data_list[[i]]
@@ -146,7 +146,7 @@ for (i in 1:length(commodity_data_list)) {
 
 
 
-```{r}
+```{r Plotting longs vs. shorts}
 # Create dygraph for each commodity in commodity_data_list
 for (commodity_name in names(commodity_data_list)) {
   current_data <- commodity_data_list[[commodity_name]]
@@ -169,7 +169,7 @@ for (commodity_name in names(commodity_data_list)) {
 
 
 
-```{r}
+```{r Plotting correlations}
 # Define a function to categorize commodities
 categorize_commodity <- function(commodity_name) {
   if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoyOil", "SoyMeal", "Wheat", "LeanHogs")) {
@@ -219,7 +219,7 @@ for (category in names(correlation_matrices)) {
 
 ```
 
-```{r}
+```{r Plotting correlation heatmaps}
 # Define a function to categorize commodities
 categorize_commodity <- function(commodity_name) {
   if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoyOil", "SoyMeal", "Wheat", "LeanHogs")) {
@@ -281,7 +281,7 @@ for (current_category in names(category_commodities)) {
 ```
 
 We change the Date variable to consecutive integers because of its irregularity. This modification will help us to manipulate and analyse time series.
-```{r}
+```{r Transforming data}
 
 # Create a new list to store data frames with modified dates
 commodity_data_list_modified <- list()
@@ -303,7 +303,7 @@ for (commodity in commodities) {
 
 Then we standardize our data.
 
-```{r}
+```{r Standardizing data}
 # Create a new list to store standardized data frames
 standardized_commodity_data_list <- list()
 
@@ -332,7 +332,7 @@ for (commodity in commodities) {
 
 Covariance matrix:
 
-```{r}
+```{r Covariance Matrix}
 # Create a new list to store covariance matrices
 covariance_matrices_list <- list()
 
@@ -357,7 +357,7 @@ covariance_matrices_list
 PCA 
 
 
-```{r}
+```{r PCA}
 # Create a new list to store PCA results
 pca_results_list <- list()
 
@@ -379,7 +379,7 @@ pca_results_list
 
 SCREE PLOTS
 
-```{r}
+```{r Scree Plots}
 # Create a new list to store scree plots
 scree_plots_list <- list()
 
@@ -399,11 +399,11 @@ for (commodity in commodities) {
   scree_plots_list[[commodity]] <- scree_plot
 }
 
-scree_plots_list
+#scree_plots_list
 ```
 
 BIPLOTS
-```{r}
+```{r Biplots}
 # Create a new list to store biplots
 biplots_list <- list()
 
@@ -422,7 +422,7 @@ for (commodity in commodities) {
   biplots_list[[commodity]] <- biplot
 }
 
-biplots_list
+#biplots_list
 ```
 
 
@@ -431,7 +431,7 @@ We want to retain the principal components associated with eigenvalues above the
 
 VARIABLES SELECTION = ASK Professor BOLDI FOR THE METHOD PLS
 
-```{r}
+```{r Variable selection}
 # Create a new list to store the most significant variables
 most_significant_variables_list <- list()
 
@@ -462,7 +462,7 @@ The labels "PC14," "PC5," etc., are likely the names or labels of the original v
 NUMBER OF PCA TO SELECT
 
 
-```{r}
+```{r PCA selection}
 # Create a list to store the cumulative variance explained for each commodity
 cumulative_variance_explained_list <- list()
 
@@ -490,7 +490,7 @@ print(selected_components_list)
 
 ```
 
-```{r}
+```{r Forcasting using ETS}
 library(tsibble)
 library(fable)
 library(ggplot2)
@@ -501,7 +501,7 @@ library(ggplot2)
 # Convert 'Date' to Date format
 COT_Cotton$Date <- as.Date(COT_Cotton$Date)
 newdata <- COT_Cotton %>%
-  select(Date, `Open Interest`, `Total Reportable Longs` , `Total Reportable Shorts` )
+  select(Date, `Open_Interest`, `Total_Reportable_Longs` , `Total_Reportable_Shorts` )
 
 
 # Create a tsibble with regular dates starting from January 2006
@@ -514,7 +514,7 @@ merged_data <- as_tsibble(merged_data%>% select(-Date), key = NULL)
 
 # Fit the ETS model using the merged data
 fit <- merged_data %>%
-  model(ETS(`Open Interest` ~ error("A") + trend("N") + season("N")))
+  model(ETS(`Open_Interest` ~ error("A") + trend("N") + season("N")))
 
 # Forecast for the next observations
 fc <- fit %>%
@@ -533,59 +533,54 @@ fc |>
 Multivariate F avec Coffee, cocoa et sugar ? ESSAI FAIL(pb data regroupement)
 peut etre multivariate avec une commo et plusieurs variables de son COT (A FAIRE)
 Also, test ARIMA à faire.
-```{r
-library(tsibble)
-library(fable)
-library(dplyr)
-
-# Assuming commodity_data_list is your list of datasets
-
-# Extract Open_Interest for Cocoa, Sugar, and Coffee
-open_interest_data <- commodity_data_list %>%
-  bind_rows(.id = "commodity") %>%
-  filter(commodity %in% c("Cocoa", "Sugar", "Coffee")) %>%
-  select(-Date) %>%
-  rename(Open_Interest = `Open Interest`)
-
-# Create a regular tsibble with dates starting from January 2006
-regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(open_interest_data)))
-
-# Bind the regular tsibble with the Open Interest data
-merged_data2 <- bind_cols(regular_tsibble, open_interest_data)
-
-# Fit a multivariate ETS model
-fit2 <- merged_data2 %>%
-  model(ETS(Open_Interest ~ error("A") + trend("N") + season("N") | commodity))
-
-# Forecast for the next observations
-fc2 <- fit2 %>%
-  forecast(h = 1)
-
-# Plot the forecast
-fc2 |>
-  autoplot(merged_data2) +
-   geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit2)) +
-   labs(y = "Open Interest", title = "Forecast: Multivariate ETS for Open Interest") +
-   guides(colour = "none")
-
-
-
-```
-
 ```{r}
+# library(tsibble)
+# library(fable)
+# library(dplyr)
+
+# # Assuming commodity_data_list is your list of datasets
+# 
+# # Extract Open_Interest for Cocoa, Sugar, and Coffee
+# open_interest_data <- commodity_data_list %>%
+#   bind_rows(.id = "commodity") %>%
+#   filter(commodity %in% c("Cocoa", "Sugar", "Coffee")) %>%
+#   select(-Date) %>%
+#   rename(Open_Interest = `Open Interest`)
+# 
+# # Create a regular tsibble with dates starting from January 2006
+# regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(open_interest_data)))
+# 
+# # Bind the regular tsibble with the Open Interest data
+# merged_data2 <- bind_cols(regular_tsibble, open_interest_data)
+# 
+# # Fit a multivariate ETS model
+# fit2 <- merged_data2 %>%
+#   model(ETS(Open_Interest ~ error("A") + trend("N") + season("N") | commodity))
+# 
+# # Forecast for the next observations
+# fc2 <- fit2 %>%
+#   forecast(h = 1)
+# 
+# # Plot the forecast
+# fc2 |>
+#   autoplot(merged_data2) +
+#    geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit2)) +
+#    labs(y = "Open Interest", title = "Forecast: Multivariate ETS for Open Interest") +
+#    guides(colour = "none")
+# 
+
 
 ```
+
+
 
 ETS des variables correlees du Cotton
-```{r}
-library(tsibble)
-library(fable)
-library(ggplot2)
+```{r ETS with cotton}
 
 
 COT_Cotton$Date <- as.Date(COT_Cotton$Date)
 
-newdata2 <- COT_Cotton %>% select(Date, `Open Interest`, `Total Reportable Longs`,`Total Reportable Shorts`)
+newdata2 <- COT_Cotton %>% select(Date, `Open_Interest`, `Total_Reportable_Longs`,`Total_Reportable_Shorts`)
 
 # Create a tsibble with regular dates starting from January 2006
 regular_tsibble3 <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(newdata2)))
@@ -599,19 +594,19 @@ merged_data3 <- as_tsibble(merged_data3 %>% select(-Date), key = NULL)
 # Fit the ETS model using the merged data
 fit3 <- merged_data3 %>%
   model(
-    ARIMA(`Open Interest` ~ `Total Reportable Longs` + `Total Reportable Shorts`))
-
-# Forecast for the next observations
-fc3 <- fit3 %>%
-  forecast(h = 1)
-
-fc3
- 
-# Plot the forecast
-fc3 |>
-  autoplot(merged_data3) +
-   geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit3)) +
-   labs(y = "Open Interest", title = "Forecast: Cotton Open Interest based on multivariate ETS") +
-   guides(colour = "none")
+    ARIMA(Open_Interest ~ Total_Reportable_Longs + Total_Reportable_Shorts))
+# 
+# # Forecast for the next observations
+# fc3 <- fit3 %>%
+#   forecast(h = 1)
+# 
+# fc3
+#  
+# # Plot the forecast
+# fc3 |>
+#   autoplot(merged_data3) +
+#    geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit3)) +
+#    labs(y = "Open Interest", title = "Forecast: Cotton Open Interest based on multivariate ETS") +
+#    guides(colour = "none")
 ```
 
