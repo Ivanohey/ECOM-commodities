@@ -28,10 +28,10 @@ library(ggfortify)
 ```{r}
 Daily_futures_prices <- read_excel("data/DailyFuturePrices_2003_2023.xlsx", sheet="Original")
 
-Daily_futures_prices <- Daily_futures_prices[, 1:13]
+Daily_futures_prices <- Daily_futures_prices[, c(1:13, 53:55)]
 Daily_futures_prices <- Daily_futures_prices[-c(1,2),]
 colnames(Daily_futures_prices)[1] ="Date"
-Daily_futures_prices[, 2:13] <- lapply(2:13, function(x) as.numeric(Daily_futures_prices[[x]]))
+Daily_futures_prices[, 2:16] <- lapply(2:16, function(x) as.numeric(Daily_futures_prices[[x]]))
 
 
 commo_mean <- function(set) {
@@ -40,7 +40,8 @@ commo_mean <- function(set) {
            Cotton = rowMeans(select(., as.numeric(2:4)), na.rm = TRUE),
            Coffee = rowMeans(select(., 5:7),na.rm = TRUE),
            Sugar = rowMeans(select(., 8:10),na.rm = TRUE),
-           Cocoa = rowMeans(select(., 11:13), na.rm = TRUE), .keep = "none")
+           Cocoa = rowMeans(select(., 11:13), na.rm = TRUE),
+           Oil = rowMeans(select(., 14:16), na.rm = TRUE),.keep = "none")
   
   return(result_set)
 }
