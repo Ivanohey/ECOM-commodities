@@ -12,42 +12,6 @@ output:
 ---
 
 ```{r import_data}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyr)
-library(tidyverse)
-library(dplyr)
-library(ggplot2)
-library(readxl)
-library(lubridate)
-library(DataExplorer)
-library(corrplot)
-library(GGally)
-library(DT)
-
-#web scrapping
-library(rvest)
-
-#cleaning 
-library(summarytools)
-library(imputeTS)
-
-#Forecasting 
-library(tsibble)
-library(fpp3)
-library(ggfortify)
-
-#Modelling
-library(reshape2)
-library(plotly)
-library(hrbrthemes)
-
-library(dygraphs)
-library(xts)
-
-wd = getwd()
-cat("Current working directory: ",wd)
-setwd(wd)
-
 COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
 COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
 COT_Silver<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Silver") %>% as_tsibble(index= Date, regular=FALSE)
