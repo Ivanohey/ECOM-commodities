@@ -40,8 +40,93 @@ for (commodity in commodities) {
 
 ```
 
+```{r Mean of future prices}
+Daily_futures_prices <- read_excel("data/DailyFuturePrices_2003_2023.xlsx", sheet="Original")
+
+#Selecting the needed columns for the soft commodities and the crude oil
+Daily_futures_prices <- Daily_futures_prices[, c(1:13, 53:55)]
+Daily_futures_prices <- Daily_futures_prices[-c(1,2),]
+colnames(Daily_futures_prices)[1] = "Date"
+
+#Transforming types to numeric
+Daily_futures_prices[, 2:16] <- lapply(2:16, function(x) as.numeric(Daily_futures_prices[[x]]))
+
+#Taking the mean of the future prices
+commo_mean <- function(set) {
+  result_set <- set %>% 
+    mutate(Date,
+           Cotton = rowMeans(select(., as.numeric(2:4)), na.rm = TRUE),
+           Coffee = rowMeans(select(., 5:7),na.rm = TRUE),
+           Sugar = rowMeans(select(., 8:10),na.rm = TRUE),
+           Cocoa = rowMeans(select(., 11:13), na.rm = TRUE),
+           Oil = rowMeans(select(., 14:16), na.rm = TRUE),
+           .keep = "none")
+  
+  return(result_set)
+}
+
+# Compute mean by group
+Daily_prices_mean <- commo_mean(Daily_futures_prices)
+
+#Creating a column for day of the week
+Daily_prices_mean$Day <- weekdays(as.Date(Daily_prices_mean$Date))
 
 
+
+```
+
+```{r Cleaning empty values}
+# Assuming your dataset is called Daily_prices_mean
+column_names <- colnames(Daily_prices_mean)
+columns_to_process <- setdiff(column_names, c("Day", "Date"))
+
+Daily_prices_mean_we <- Daily_prices_mean %>%
+  arrange(Date) %>%
+  mutate(across(all_of(columns_to_process), 
+                ~ ifelse(!Day %in% c("Saturday", "Sunday") & is.na(.), NA_real_, .),
+                .names = "{.col}"))
+
+# Use tidyr::fill to fill the weekend indicator
+Daily_prices_mean_we <- Daily_prices_mean_we %>%
+  tidyr::fill(everything(), .direction = "downup")
+
+Daily_prices_mean_we <- Daily_prices_mean_we %>%
+  mutate(across(all_of(columns_to_process),
+                ~ ifelse(!Day %in% c("Saturday", "Sunday") & is.na(.), 
+                         (lag(., default = first(na.omit(.))) + lead(., default = last(na.omit(.)))) / 2, .),
+                .names = "{.col}_filled"))
+
+Daily_prices_mean_we <- Daily_prices_mean_we %>% select(Date, Day, Cotton, Coffee, Sugar, Cocoa, Oil)
+
+```
+
+```{r Delta period price}
+# # Assuming your dataset is called Daily_price_mean_we
+# Daily_prices_mean_we <- Daily_prices_mean_we %>%
+#   arrange(Date) %>%
+#   mutate(across(all_of(columns_to_process), 
+#                 ~ ifelse(is.na(.) & !(Day %in% c("Saturday", "Sunday")), 
+#                           (lag(., default = first(.)) + lead(., default = last(.))) / 2,
+#                           .)),
+#          period_start = lubridate::wday(Date) == 4,  # Wednesday is day 4
+#          period_end = lubridate::wday(Date) == 3)  # Tuesday is day 3
+# 
+# # Discard rows until the first Tuesday
+# Daily_prices_mean_we <- Daily_prices_mean_we %>%
+#   filter(period_start | lag(period_start) | lag(period_start, 2)) %>%
+#   droplevels()
+# 
+# 
+# for (product_col in columns_to_process) {
+#   Daily_prices_mean_we <- Daily_prices_mean_we %>%
+#     group_by(across(all_of(product_col))) %>%
+#     mutate(period_return = ifelse(period_start, lag(!!sym(product_col), default = first(!!sym(product_col))), NA),
+#            period_return = ifelse(period_end, !!sym(product_col) - period_return, NA)) %>%
+#     ungroup()
+# }
+# 
+
+```
 
 ```{r creating COT dfs}
 #Softs
