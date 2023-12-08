@@ -11,70 +11,6 @@ output:
     code_folding: hide
 ---
 
-```{r import_data}
-# COT_Cotton<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cotton") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Cocoa<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Cocoa") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Silver<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Silver") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_CrudeOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="CrudeOil") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Sugar<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Sugar") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_NagGas<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="NagGas") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_HeatOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="HeatOil") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Gasoline<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gasoline") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Corn<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Corn") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Soybeans<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Soybeans") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_SoyOil<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyOil") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_SoyMeal<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="SoyMeal") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Wheat<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Wheat") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Gold<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Gold") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Platinum<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Platinum") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Palladium<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Palladium") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_FedCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="FedCattle") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_LiveCattle<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LiveCattle") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Copper<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Copper") %>% as_tsibble(index= Date, regular=FALSE)
-# COT_Coffee<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Coffee") %>% as_tsibble(index= Date, regular=FALSE)
-
-
-
-```
-
-```{r}
-# # Create an empty list to store the data frames
-# commodity_data_list <- list()
-# 
-# # List of commodity sheet names
-# commodities <- c(
-#   "Cotton", "Cocoa", "Silver", "CrudeOil", "Sugar", "NagGas", "HeatOil",
-#   "Gasoline", "Corn", "Soybeans", "SoyOil", "SoyMeal", "Wheat", "Gold",
-#   "Platinum", "Palladium", "FedCattle", "LiveCattle", "LeanHogs","Copper", "Coffee"
-# )
-# 
-# # Load data for each commodity and store it in the list
-# for (commodity in commodities) {
-#   data <- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet = commodity) %>% rename(
-#     "Open_Interest" = "Open Interest",
-#     "Producer_Longs"="Producer/Merchant/Processor/User Longs",
-#     "Producer_Shorts"="Producer/Merchant/Processor/User Shorts",
-#     "Swap_Dealer_Longs"="Swap Dealer Longs",
-#     "Swap_Dealer_Shorts"="Swap Dealer Shorts",
-#     "Swap_Dealer_Spreads"="Swap Dealer Spreads",
-#     "Money_Manager_Longs"="Money Manager Longs",
-#     "Money_Manager_Shorts"="Money Manager Shorts",
-#     "Money_Manager_Spreads"="Money Manager Spreads",
-#     "Other_Reportable_Longs"="Other Reportable Longs",
-#     "Other_Reportable_Shorts"="Other Reportable Shorts",
-#     "Other_Reportable_Shorts"="Other Reportable Shorts",
-#     "Total_Reportable_Longs"="Total Reportable Longs",
-#     "Total_Reportable_Shorts"="Total Reportable Shorts",
-#     "Non_Reportable_Longs"="Non Reportable Longs",
-#     "Non_Reportable_Shorts"="Non Reportable Shorts") %>% as_tsibble(index = Date, regular = FALSE)
-#   commodity_data_list[[commodity]] <- data
-# }
-
-# Now you have a list 'commodity_data_list' containing data frames for each commodity
-
-```
-
 Our data set is composed of 21 COT reports of commodities and an excel file containing their daily future prices (AJOUTER LES DATES= FROM TO). Our goal is to forecast the next COT report, a report that is done weekly. We will do so for the following commodities: Cotton, Cocoa, Coffee and Sugar. We expect to find similarities between those commodities as they belong to the same category named "softs". This means that they are agricultural products. Nevertheless, we will add the Crude Oil commodity as soft commodities should be dependent to. Indeed, Oil is the energy that farmers need for their machines and so, it can explain variations in their COT reports. 
 
 To do our forecast, we need to understand the behavior of our commodities and the dependence that could exist between them. First, we will focus our analysis on the variables of the COT reports, then we will analyse their daily future prices. 
@@ -170,6 +106,8 @@ print(comparison_plot)
 ```
 From this scatterplot, Crude Oil, Cotton and Sugar seems to follow the same trend but in different proportions. 
 
+(AJOUTER DE LANALYSE)
+
 **2. Understanding the variables in the COT report**
 As mentioned before, the open interest variable is very important to understand the variation in the COT reports. From the following dygraphs, we can see that Open interest, total reportable shorts and total reportable longs are highly correlated.
 
@@ -244,55 +182,18 @@ for (commodity_name in selected_commodities) {
 
 ```
 
-
+With correlation heatmaps, we clearly see the correlation seen above, between the variables of the COT reports. We notie that the Cocoa do not exhibit any negative correlation and Coffee do exhibit very few ones compared to Sugar for example.
 ```{r Plotting correlation heatmaps}
-# Define a function to categorize commodities
-categorize_commodity <- function(commodity_name) {
-  if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoyOil", "SoyMeal", "Wheat", "LeanHogs")) {
-    return("Agricultural Commodities")
-  } else if (commodity_name %in% c("FedCattle", "LiveCattle", "LeanHogs")) {
-    return("Livestock")
-  } else if (commodity_name %in% c("Copper", "Gold", "Silver", "Platinum", "Palladium")) {
-    return("Metals")
-  } else if (commodity_name %in% c("CrudeOil", "NagGas", "HeatOil", "Gasoline")) {
-    return("Energy Commodities")
-  } else {
-    return("Other")
-  }
-}
 
-# Create a list to store correlation matrices for each category
-correlation_matrices <- list(
-  "Agricultural Commodities" = NULL,
-  "Livestock" = NULL,
-  "Metals" = NULL,
-  "Energy Commodities" = NULL
-)
+selected_commodities <- c("Cotton", "Coffee", "Sugar", "CrudeOil", "Cocoa")
 
-category_commodities <- list(
-  "Agricultural Commodities" = list(),
-  "Livestock" = list(),
-  "Metals" = list(),
-  "Energy Commodities" = list(),
-  "Other" = list()
-)
-
-#Building lists with commodities within categories
-for (commodity in names(commodity_data_list)){
-  current_category = categorize_commodity(commodity)
-  category_commodities[[current_category]] <- append(category_commodities[[current_category]], commodity)
-}
-
-
-# Loop through the data frames
-for (current_category in names(category_commodities)) {
-  for(current_commodity in category_commodities[[current_category]]){
-    my_data = commodity_data_list[[current_commodity]] %>% data.frame() %>% select(-Date)
+for (commodity_name in selected_commodities) {
+  current_data <- commodity_data_list[[commodity_name]] 
   
-    cormat = round(cor(my_data),2)
+  cormat = round(cor(current_data[,-1]),2)
     melted_cormat <- melt(cormat) %>% rename("Variable_1"="Var1", "Variable_2"="Var2")
     plot = ggplot(data = melted_cormat, aes(x=Variable_1, y=Variable_2, fill=value)) +
-    ggtitle(paste("Correlation heatmap", current_commodity))+
+    ggtitle(paste("Correlation heatmap", commodity_name))+
     geom_tile(color = "white") +
     scale_fill_gradient2(high = "darkblue", low = "darkred", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab", name="Pearson\nCorrelation") +
     theme_minimal()+ 
@@ -301,7 +202,6 @@ for (current_category in names(category_commodities)) {
     coord_fixed()
     print(plot)
   }
-}
 
 
 ```
