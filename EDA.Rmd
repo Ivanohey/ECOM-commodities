@@ -75,10 +75,16 @@ output:
 
 ```
 
-Our data set is composed of 21 COT reports of commodities and an excel file containing their daily future prices. Our goal is to forecast the COT report for the week after for the following commodities: Cotton, Cocoa, Coffee and Sugar. We expect to find similarities between those commodities as they belong to the same category named "softs". This means that they are agricultural products. Nevertheless, we will add a commodity that can explain their variation: Oil. Indeed, Oil is the energy that farmers need for their machines. 
+Our data set is composed of 21 COT reports of commodities and an excel file containing their daily future prices (AJOUTER LES DATES= FROM TO). Our goal is to forecast the next COT report, a report that is done weekly. We will do so for the following commodities: Cotton, Cocoa, Coffee and Sugar. We expect to find similarities between those commodities as they belong to the same category named "softs". This means that they are agricultural products. Nevertheless, we will add the Crude Oil commodity as soft commodities should be dependent to. Indeed, Oil is the energy that farmers need for their machines and so, it can explain variations in their COT reports. 
 
-To do so, we need to understand the behavior of the variables of the COT reports independently. First, we use univariate vizualization of the open interest variable for each commodity. The open interest is known as a variable that contains a lot of information from the other COT variables. We will developed this later in our analysis.
+To do our forecast, we need to understand the behavior of our commodities and the dependence that could exist between them. First, we will focus our analysis on the variables of the COT reports, then we will analyse their daily future prices. 
 
+**1. Understanding the commodities and their relationship**
+Our exploratory data analysis begin with the global understanding of each commodities through one variable that is Open Interest. We do univariate vizualization of this variable for each commodity. 
+
+The open interest is known as a variable that contains a lot of information from the other COT variables. We will developed this later in our analysis.
+
+*Open Interest of each commodities*
 ```{r Plotting open interests}
 # Create and display interactive area charts for "Open Interest" for each commodity
 selected_commodities <- c("Cotton", "Coffee", "Sugar", "CrudeOil", "Cocoa")
@@ -103,7 +109,6 @@ for (commodity_name in selected_commodities) {
 
 ```
 The graphs shows a similar trend between Cocoa and Coffee. Also, it shows a similar trend between CrudeOil, Sugar and Cotton. To be sure, we do a bivariate vizualization for Cocoa and Coffee, and a multivariate one for the other commodities. 
-
 
 ```{r}
 # Assuming commodity_data_list is a list containing data frames for each commodity
@@ -131,7 +136,7 @@ comparison_plot <- ggplot() +
 print(comparison_plot)
 
 ```
-This scatterplot seems to show a linear dependence between Coffee and Cocoa. 
+This scatterplot seems to show a common trend between Coffee and Cocoa. 
 
 ```{r}
 # Assuming commodity_data_list is a list containing data frames for each commodity
@@ -163,8 +168,9 @@ comparison_plot <- ggplot() +
 print(comparison_plot)
 
 ```
-From this scatterplot, Crude Oil, Cotton and Sugar seems to follow same patterns but in different proportions. 
+From this scatterplot, Crude Oil, Cotton and Sugar seems to follow the same trend but in different proportions. 
 
+**2. Understanding the variables in the COT report**
 As mentioned before, the open interest variable is very important to understand the variation in the COT reports. From the following dygraphs, we can see that Open interest, total reportable shorts and total reportable longs are highly correlated.
 
 ```{r Plotting all variables for each commodity}
@@ -187,12 +193,13 @@ for (commodity_name in selected_commodities) {
 
 ```
 
-Plots for each variables of each commodities
+Using this visualization, we have a better understanding of each variable time series.  
 ```{r Plotting time series for each variable of each commodity}
-# Create and display time series plots for each data frame in the list
-for (i in 1:length(commodity_data_list)) {
-  current_data <- commodity_data_list[[i]]
-  commodity_name <- names(commodity_data_list)[i]  # Get the name of the commodity
+# Create and display interactive area charts for "Open Interest" for each commodity
+selected_commodities <- c("Cotton", "Coffee", "Sugar", "CrudeOil", "Cocoa")
+
+for (commodity_name in selected_commodities) {
+  current_data <- commodity_data_list[[commodity_name]]
   
   COT_data_long <- gather(current_data, key = "Variable", value = "Value", -Date)
   
@@ -210,12 +217,15 @@ for (i in 1:length(commodity_data_list)) {
 
 
 ```
+Besides the common trends of Open interest, Total Reportable Longs and Total Reportable Shorts,
+we notice that Money Manager Spread is sharing some similarities with these variables too.
 
-
-
+With the following graphs, we aimed to see the relationship between producer Longs and Shorts. Most commodities seem to display positive correlation between Producer Longs and Producer Shorts. But Cocoa and Coffee share similarities as the two variables show signs of negative correlations. 
 ```{r Plotting longs vs. shorts}
-# Create dygraph for each commodity in commodity_data_list
-for (commodity_name in names(commodity_data_list)) {
+
+selected_commodities <- c("Cotton", "Coffee", "Sugar", "CrudeOil", "Cocoa")
+
+for (commodity_name in selected_commodities) {
   current_data <- commodity_data_list[[commodity_name]]
   
   # Create xts object with selected variables
@@ -234,57 +244,6 @@ for (commodity_name in names(commodity_data_list)) {
 
 ```
 
-
-
-```{r Plotting correlations}
-# Define a function to categorize commodities
-categorize_commodity <- function(commodity_name) {
-  if (commodity_name %in% c("Cotton", "Coffee", "Sugar", "Cocoa", "Corn", "SoyBeans", "SoyOil", "SoyMeal", "Wheat", "LeanHogs")) {
-    return("Agricultural Commodities")
-  } else if (commodity_name %in% c("FedCattle", "LiveCattle", "LeanHogs")) {
-    return("Livestock")
-  } else if (commodity_name %in% c("Copper", "Gold", "Silver", "Platinum", "Palladium")) {
-    return("Metals")
-  } else if (commodity_name %in% c("CrudeOil", "NagGas", "HeatOil","Gasoline")) {
-    return("Energy Commodities")
-  } else {
-    return("Other")
-  }
-}
-
-# Create a list to store correlation matrices
-correlation_matrices <- list()
-
-# Loop through the data frames
-for (commodity_name in names(commodity_data_list)) {
-  # Categorize the commodity
-  category <- categorize_commodity(commodity_name)
-  
-  # Identify which columns are numeric (excluding the "Date" column)
-  numeric_columns <- sapply(commodity_data_list[[commodity_name]], function(col) is.numeric(col) && !identical(col, commodity_data_list[[commodity_name]]$Date))
-  
-  # Select and calculate the correlation matrix for numeric columns
-  numeric_data <- commodity_data_list[[commodity_name]][, numeric_columns]
-  
-  # Check if there are enough numeric columns for correlation analysis
-  if (sum(numeric_columns) >= 2)  {
-    correlation_matrix <- cor(numeric_data)
-    
-    # Store the correlation matrix in the list with the category as the name
-    correlation_matrices[[category]] <- correlation_matrix
-  } else {
-    cat("Insufficient numeric columns for correlation analysis in", commodity_name, "\n")
-  }
-}
-
-# Visualize correlations for each category
-for (category in names(correlation_matrices)) {
-  cat("\nCategory:", category)
-  corrplot(correlation_matrices[[category]], method = "color", type = "lower", tl.col = "black", title = "Correlation Heatmap")
-}
-
-
-```
 
 ```{r Plotting correlation heatmaps}
 # Define a function to categorize commodities
