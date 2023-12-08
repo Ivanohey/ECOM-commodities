@@ -256,7 +256,7 @@ for (commodity in commodities) {
 
 ```
 
-Covariance matrix:
+Here are the covariance matrix of each commodities. We compute them to conduct a Principal component analysis. This method is used to reduce the dimensionality of the data.
 
 ```{r Covariance Matrix}
 # Create a new list to store covariance matrices
@@ -277,11 +277,12 @@ for (commodity in commodities) {
   covariance_matrices_list[[commodity]] <- cov_matrix
 }
 
-covariance_matrices_list
+covariance_matrices_list$Cotton
+covariance_matrices_list$Cocoa
+covariance_matrices_list$Coffee
+covariance_matrices_list$CrudeOil
+covariance_matrices_list$Sugar
 ```
-
-PCA 
-
 
 ```{r PCA}
 # Create a new list to store PCA results
@@ -299,12 +300,54 @@ for (commodity in commodities) {
   pca_results_list[[commodity]] <- pca_result
 }
 
-pca_results_list
+```
+
+Summaries of PCA analysis
+
+Cotton : The first component explain around 50% of the overall variation. The 3 first components explain more than 80% of the overall variation. 
+```{r}
+summary(pca_results_list$Cotton)
+summary(pca_results_list$Coffee)
+summary(pca_results_list$Cocoa)
+summary(pca_results_list$CrudeOil)
+summary(pca_results_list$Sugar)
+
+```
+The variables factor map (PCA) help us better understand the role of each factor. The variables are organized along dimensions. We analyse if and which dimensions are correlated to which variables.
+
+```{r}
+
+# Create a new list to store biplots
+biplots_list <- list()
+
+# Iterate through the PCA results and create biplots
+for (commodity in commodities) {
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Create biplot
+  biplot <- biplot(pca_result, scale = 0)
+  
+  # Add title to the biplot
+  title <- paste("Biplot -", commodity)
+  title(main = title)
+  
+  # Store the biplot in the list
+  biplots_list[[commodity]] <- biplot
+}
 
 ```
 
-SCREE PLOTS
+To organize groups of data, we do individual factor map.
+```{r}
 
+```
+
+
+
+
+REFAIRE LA PARTIE SUIVANTE CAR CLUSTERS PAS SUR RESULTATS PCA.
+
+The scree plots display the numbers of clusters
 ```{r Scree Plots}
 # Create a new list to store scree plots
 scree_plots_list <- list()
@@ -328,93 +371,13 @@ for (commodity in commodities) {
 #scree_plots_list
 ```
 
-BIPLOTS
-```{r Biplots}
-# Create a new list to store biplots
-biplots_list <- list()
-
-# Iterate through the PCA results and create biplots
-for (commodity in commodities) {
-  pca_result <- pca_results_list[[commodity]]
-  
-  # Create biplot
-  biplot <- biplot(pca_result, scale = 0)
-  
-  # Add title to the biplot
-  title <- paste("Biplot -", commodity)
-  title(main = title)
-  
-  # Store the biplot in the list
-  biplots_list[[commodity]] <- biplot
-}
-
-#biplots_list
-```
-
 
 
 We want to retain the principal components associated with eigenvalues above the "elbow" in the scree plot.
 
-VARIABLES SELECTION = ASK Professor BOLDI FOR THE METHOD PLS
 
-```{r Variable selection}
-# Create a new list to store the most significant variables
-most_significant_variables_list <- list()
+FACTOR ANALYSIS TO DO HERE = 1 er SELECTION
 
-# Iterate through the PCA results
-for (commodity in commodities) {
-  pca_result <- pca_results_list[[commodity]]
-  
-  # Extract loadings from the PCA result
-  loadings <- pca_result$rotation
-  
-  # Identify the most significant variable for each principal component
-  most_significant_variables <- apply(loadings, 2, function(pc_loadings) {
-    variable_index <- which.max(abs(pc_loadings))
-    variable_name <- colnames(loadings)[variable_index]
-    return(variable_name)
-  })
-  
-  # Store the most significant variables in the list
-  most_significant_variables_list[[commodity]] <- most_significant_variables
-}
-
-# Print or use the most significant variables list as needed
-print(most_significant_variables_list)
-
-```
-The labels "PC14," "PC5," etc., are likely the names or labels of the original variables in your dataset. These labels indicate which variables contribute the most to the variability captured by each principal component.
-
-NUMBER OF PCA TO SELECT
-
-
-```{r PCA selection}
-# Create a list to store the cumulative variance explained for each commodity
-cumulative_variance_explained_list <- list()
-
-# Iterate through the PCA results
-for (commodity in commodities) {
-  pca_result <- pca_results_list[[commodity]]
-  
-  # Access eigenvalues and calculate cumulative variance
-  eigenvalues <- pca_result$sdev^2
-  cumulative_variance <- cumsum(eigenvalues) / sum(eigenvalues)
-  
-  # Store the cumulative variance explained in the list
-  cumulative_variance_explained_list[[commodity]] <- cumulative_variance
-}
-
-# Select the number of principal components based on cumulative variance explained
-# Adjust the threshold as needed
-threshold <- 0.95
-selected_components_list <- lapply(cumulative_variance_explained_list, function(cum_var) {
-  which(cum_var >= threshold)[1]
-})
-
-# Print or use the selected components list as needed
-print(selected_components_list)
-
-```
 
 ```{r Forcasting using ETS}
 library(tsibble)
