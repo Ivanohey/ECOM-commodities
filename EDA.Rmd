@@ -75,11 +75,15 @@ output:
 
 ```
 
+Our data set is composed of 21 COT reports of commodities and an excel file containing their daily future prices. Our goal is to forecast the COT report for the week after for the following commodities: Cotton, Cocoa, Coffee and Sugar. We expect to find similarities between those commodities as they belong to the same category named "softs". This means that they are agricultural products. Nevertheless, we will add a commodity that can explain their variation: Oil. Indeed, Oil is the energy that farmers need for their machines. 
 
+To do so, we need to understand the behavior of the variables of the COT reports independently. First, we use univariate vizualization of the open interest variable for each commodity. The open interest is known as a variable that contains a lot of information from the other COT variables. We will developed this later in our analysis.
 
 ```{r Plotting open interests}
 # Create and display interactive area charts for "Open Interest" for each commodity
-for (commodity_name in names(commodity_data_list)) {
+selected_commodities <- c("Cotton", "Coffee", "Sugar", "CrudeOil", "Cocoa")
+
+for (commodity_name in selected_commodities) {
   current_data <- commodity_data_list[[commodity_name]]
   
   open_interest_chart <- current_data %>%
@@ -98,13 +102,76 @@ for (commodity_name in names(commodity_data_list)) {
 
 
 ```
+The graphs shows a similar trend between Cocoa and Coffee. Also, it shows a similar trend between CrudeOil, Sugar and Cotton. To be sure, we do a bivariate vizualization for Cocoa and Coffee, and a multivariate one for the other commodities. 
 
-From the following dygraphs, we can see that Open interest, total reportable shorts and total reportable longs are highly correlated.
+
+```{r}
+# Assuming commodity_data_list is a list containing data frames for each commodity
+
+# Extract data for Cocoa and Coffee
+cocoa_data <- commodity_data_list$Cocoa
+coffee_data <- commodity_data_list$Coffee
+
+# Fit linear regression lines
+cocoa_lm <- lm(Open_Interest ~ Date, data = cocoa_data)
+coffee_lm <- lm(Open_Interest ~ Date, data = coffee_data)
+
+# Create a scatter plot with trend lines
+comparison_plot <- ggplot() +
+  geom_point(data = cocoa_data, aes(x = Date, y = Open_Interest, color = "Cocoa"), alpha = 0.5) +
+  geom_point(data = coffee_data, aes(x = Date, y = Open_Interest, color = "Coffee"), alpha = 0.5) +
+  geom_smooth(data = cocoa_data, aes(x = Date, y = Open_Interest, color = "Cocoa"), method = "lm", se = FALSE) +
+  geom_smooth(data = coffee_data, aes(x = Date, y = Open_Interest, color = "Coffee"), method = "lm", se = FALSE) +
+  ggtitle("Comparison of Open Interest: Cocoa vs. Coffee") +
+  ylab("Open Interest") +
+  xlab("Date") +
+  theme_minimal()
+
+# Display the plot
+print(comparison_plot)
+
+```
+This scatterplot seems to show a linear dependence between Coffee and Cocoa. 
+
+```{r}
+# Assuming commodity_data_list is a list containing data frames for each commodity
+
+# Extract data for Cotton, Sugar, and Crude Oil
+cotton_data <- commodity_data_list$Cotton
+sugar_data <- commodity_data_list$Sugar
+oil_data <- commodity_data_list$CrudeOil
+
+# Fit linear regression lines
+cotton_lm <- lm(Open_Interest ~ Date, data = cotton_data)
+sugar_lm <- lm(Open_Interest ~ Date, data = sugar_data)
+oil_lm <- lm(Open_Interest ~ Date, data = oil_data)
+
+# Create a scatter plot with trend lines
+comparison_plot <- ggplot() +
+  geom_point(data = cotton_data, aes(x = Date, y = Open_Interest, color = "Cotton"), alpha = 0.5) +
+  geom_point(data = sugar_data, aes(x = Date, y = Open_Interest, color = "Sugar"), alpha = 0.5) +
+  geom_point(data = oil_data, aes(x = Date, y = Open_Interest, color = "Crude Oil"), alpha = 0.5) +
+  geom_smooth(data = cotton_data, aes(x = Date, y = Open_Interest, color = "Cotton"), method = "lm", se = FALSE) +
+  geom_smooth(data = sugar_data, aes(x = Date, y = Open_Interest, color = "Sugar"), method = "lm", se = FALSE) +
+  geom_smooth(data = oil_data, aes(x = Date, y = Open_Interest, color = "Crude Oil"), method = "lm", se = FALSE) +
+  ggtitle("Comparison of Open Interest: Cotton vs. Sugar vs. Crude Oil") +
+  ylab("Open Interest") +
+  xlab("Date") +
+  theme_minimal()
+
+# Display the plot
+print(comparison_plot)
+
+```
+From this scatterplot, Crude Oil, Cotton and Sugar seems to follow same patterns but in different proportions. 
+
+As mentioned before, the open interest variable is very important to understand the variation in the COT reports. From the following dygraphs, we can see that Open interest, total reportable shorts and total reportable longs are highly correlated.
 
 ```{r Plotting all variables for each commodity}
+# Create and display interactive area charts for "Open Interest" for each commodity
+selected_commodities <- c("Cotton", "Coffee", "Sugar", "CrudeOil", "Cocoa")
 
-# Create dygraph for each commodity in commodity_data_list
-for (commodity_name in names(commodity_data_list)) {
+for (commodity_name in selected_commodities) {
   current_data <- commodity_data_list[[commodity_name]]
   
   # Create xts object from your data
