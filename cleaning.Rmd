@@ -97,34 +97,55 @@ Daily_prices_mean_we <- Daily_prices_mean_we %>%
                 .names = "{.col}_filled"))
 
 Daily_prices_mean_we <- Daily_prices_mean_we %>% select(Date, Day, Cotton, Coffee, Sugar, Cocoa, Oil)
+Daily_prices_mean_we <- Daily_prices_mean_we[-c(1:3), ]
 
 ```
 
 ```{r Delta period price}
-# # Assuming your dataset is called Daily_price_mean_we
-# Daily_prices_mean_we <- Daily_prices_mean_we %>%
-#   arrange(Date) %>%
-#   mutate(across(all_of(columns_to_process), 
-#                 ~ ifelse(is.na(.) & !(Day %in% c("Saturday", "Sunday")), 
-#                           (lag(., default = first(.)) + lead(., default = last(.))) / 2,
-#                           .)),
-#          period_start = lubridate::wday(Date) == 4,  # Wednesday is day 4
-#          period_end = lubridate::wday(Date) == 3)  # Tuesday is day 3
-# 
-# # Discard rows until the first Tuesday
-# Daily_prices_mean_we <- Daily_prices_mean_we %>%
-#   filter(period_start | lag(period_start) | lag(period_start, 2)) %>%
-#   droplevels()
-# 
-# 
-# for (product_col in columns_to_process) {
-#   Daily_prices_mean_we <- Daily_prices_mean_we %>%
-#     group_by(across(all_of(product_col))) %>%
-#     mutate(period_return = ifelse(period_start, lag(!!sym(product_col), default = first(!!sym(product_col))), NA),
-#            period_return = ifelse(period_end, !!sym(product_col) - period_return, NA)) %>%
-#     ungroup()
-# }
-# 
+Daily_prices_mean_we$Date <- as.Date(Daily_prices_mean_we$Date)
+period_price_diff <- data.frame()
+
+for (col in columns_to_process) {
+  
+  first_day_period <- NULL
+  open_price <- NULL
+  
+  #Loop through the data set
+  for (i in 1:nrow(Daily_prices_mean_we)) {
+    current_date <- Daily_prices_mean_we$Date[i]
+    current_weekday <- weekdays(current_date)
+    
+    #Period from tuesday to tuesday
+    if (current_weekday == "Tuesday") {
+      #If it's a Tuesday, set the start of the period
+      first_day_period <- current_date
+      open_price <- Daily_prices_mean_we[[col]][i]
+    } else if (!is.null(first_day_period) && !is.na(first_day_period)) {
+      #If it's not a Tuesday and we have a start date, calculate the price difference
+      last_day_period <- current_date
+      close_price <- Daily_prices_mean_we[[col]][i]
+      price_diff <- round(close_price - open_price, 3)
+
+      #Store the result in the data frame
+      result <- data.frame(
+        period = paste(first_day_period, last_day_period, sep = " - "),
+        product = col,
+        difference = price_diff
+      )
+      period_price_diff <- bind_rows(period_price_diff, result)
+      
+      #Next period
+      first_day_period <- last_day_period
+      open_price <- close_price
+    }
+  }
+}
+
+#Reshaping the dataframe
+period_price_diff <- spread(period_price_diff, product, difference)
+
+#Display the result
+print(period_price_diff)
 
 ```
 
