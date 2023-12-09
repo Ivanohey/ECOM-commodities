@@ -337,15 +337,62 @@ for (commodity in commodities) {
 
 ```
 
-To organize groups of data, we do individual factor map.
+To organize groups of data, we do individual factor map. (HELP TO METTRE LES NOMS DES FACTEURS SUR LES POINTS!)
 ```{r}
+# Assuming you have a list named 'pca_results_list' containing PCA results for each commodity
+# and a data frame named 'commodities' with a 'commodity' column
+library(factoextra)
+# Create a new list to store individual factor maps
+factor_maps_list <- list()
+
+# Iterate through the PCA results and create biplots
+for (commodity in commodities) {
+  pca_result <- pca_results_list[[commodity]]
+  
+  
+  # Create a factor map
+  factor_map <- fviz_pca_ind(pca_result, geom.ind = "point", 
+                             
+                             title = paste("Factor Map -", commodity))
+ 
+  
+  # Store the factor map in the list
+  factor_maps_list[[commodity]] <- factor_map
+}
+
+ factor_maps_list$Cotton
+
+```
+
+```{r}
+# Create a new list to store k-means clustering results
+kmeans_results_list <- list()
+
+# Specify the number of clusters (k)
+num_clusters <- 3  # Adjust as needed
+
+for (commodity in commodities) {
+  pca_result <- pca_results_list[[commodity]]
+  
+  # Extract the variables from the PCA result
+  variables <- 
+  
+  # Perform k-means clustering on the variables
+  kmeans_result <- kmeans(variables, centers = num_clusters)
+  
+  # Add cluster assignments to the original data
+  commodity_data$Cluster <- as.factor(kmeans_result$cluster)
+  
+  # Store the k-means result in the list
+  kmeans_results_list[[commodity]] <- kmeans_result
+}
+
+# Display or further process the k-means results as needed
 
 ```
 
 
-
-
-REFAIRE LA PARTIE SUIVANTE CAR CLUSTERS PAS SUR RESULTATS PCA.
+REFAIRE LA PARTIE SUIVANTE CLUSTERS PB VARIABLES
 
 The scree plots display the numbers of clusters
 ```{r Scree Plots}
@@ -368,7 +415,7 @@ for (commodity in commodities) {
   scree_plots_list[[commodity]] <- scree_plot
 }
 
-#scree_plots_list
+
 ```
 
 
@@ -377,6 +424,15 @@ We want to retain the principal components associated with eigenvalues above the
 
 
 FACTOR ANALYSIS TO DO HERE = 1 er SELECTION
+
+**Variable selection**
+t test
+```{r}
+
+
+
+```
+
 
 
 ```{r Forcasting using ETS}
@@ -419,83 +475,5 @@ fc |>
 
 
 ```
-Multivariate F avec Coffee, cocoa et sugar ? ESSAI FAIL(pb data regroupement)
-peut etre multivariate avec une commo et plusieurs variables de son COT (A FAIRE)
-Also, test ARIMA à faire.
-```{r}
-# library(tsibble)
-# library(fable)
-# library(dplyr)
 
-# # Assuming commodity_data_list is your list of datasets
-# 
-# # Extract Open_Interest for Cocoa, Sugar, and Coffee
-# open_interest_data <- commodity_data_list %>%
-#   bind_rows(.id = "commodity") %>%
-#   filter(commodity %in% c("Cocoa", "Sugar", "Coffee")) %>%
-#   select(-Date) %>%
-#   rename(Open_Interest = `Open Interest`)
-# 
-# # Create a regular tsibble with dates starting from January 2006
-# regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(open_interest_data)))
-# 
-# # Bind the regular tsibble with the Open Interest data
-# merged_data2 <- bind_cols(regular_tsibble, open_interest_data)
-# 
-# # Fit a multivariate ETS model
-# fit2 <- merged_data2 %>%
-#   model(ETS(Open_Interest ~ error("A") + trend("N") + season("N") | commodity))
-# 
-# # Forecast for the next observations
-# fc2 <- fit2 %>%
-#   forecast(h = 1)
-# 
-# # Plot the forecast
-# fc2 |>
-#   autoplot(merged_data2) +
-#    geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit2)) +
-#    labs(y = "Open Interest", title = "Forecast: Multivariate ETS for Open Interest") +
-#    guides(colour = "none")
-# 
-
-
-```
-
-
-
-ETS des variables correlees du Cotton
-```{r ETS with cotton}
-
-
-COT_Cotton$Date <- as.Date(COT_Cotton$Date)
-
-newdata2 <- COT_Cotton %>% select(Date, `Open_Interest`, `Total_Reportable_Longs`,`Total_Reportable_Shorts`)
-
-# Create a tsibble with regular dates starting from January 2006
-regular_tsibble3 <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(newdata2)))
-
-# Merge COT_Cotton and regular_tsibble based on nothing
-merged_data3 <- bind_cols(newdata2, regular_tsibble3)
-
-merged_data3 <- as_tsibble(merged_data3 %>% select(-Date), key = NULL)
-
-
-# Fit the ETS model using the merged data
-fit3 <- merged_data3 %>%
-  model(
-    ARIMA(Open_Interest ~ Total_Reportable_Longs + Total_Reportable_Shorts))
-# 
-# # Forecast for the next observations
-# fc3 <- fit3 %>%
-#   forecast(h = 1)
-# 
-# fc3
-#  
-# # Plot the forecast
-# fc3 |>
-#   autoplot(merged_data3) +
-#    geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit3)) +
-#    labs(y = "Open Interest", title = "Forecast: Cotton Open Interest based on multivariate ETS") +
-#    guides(colour = "none")
-```
 
