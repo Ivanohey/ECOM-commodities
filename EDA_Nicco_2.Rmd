@@ -1,0 +1,149 @@
+---
+title: "EDA_nicco"
+author: "Niccolò Cherubini"
+date: "2023-12-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+
+```{r}
+
+for (commo_name in names(Daily_prices_mean_we[,3:7])) {
+  price_chart <- Daily_prices_mean_we %>%
+    ggplot(aes(x = Date, y = .data[[commo_name]])) +
+    ggtitle(paste(commo_name, " Price"))+
+    geom_area(fill = "#69b3a2", alpha = 0.5) +
+    geom_line(color = "#69b3a2") +
+    ylab("Price") +
+    theme_ipsum()
+    
+  interactive_area_price_chart <- ggplotly(price_chart)
+  
+  # Display the interactive area chart
+  print(interactive_area_price_chart)
+}
+
+```
+
+
+```{r}
+#Statistical structure of prices
+summary(Daily_prices_mean_we)
+
+#Analysing commodities by pairs
+pairs(Daily_prices_mean_we[, 3:7])
+
+#Correlation matrix for prices
+cor(Daily_prices_mean_we[, 3:7])
+
+prices_cor_matrix = as.data.frame(cor(Daily_prices_mean_we[, 3:7]))
+
+
+
+#Correlation Heatmap 
+# ggplot(prices_cor_long, aes(x = variable, y = value, fill = value)) +
+#   geom_tile(color = "white") +
+#   scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1), space = "Lab", name="Correlation") +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+#   labs(title = "Correlation Heatmap of Commodity Prices",
+#        x = "Commodity",
+#        y = "Commodity")
+
+
+correlation_df <- as.data.frame(as.table(cor(Daily_prices_mean_we[,3:7])))
+
+
+# Create a heatmap using ggplot2
+ggplot(correlation_df, aes(x = Var1, y = Var2, fill = Freq)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "green", mid = "white", midpoint = 0, limit = c(-1, 1), space = "Lab", name="Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  labs(title = "Correlation Heatmap of Commodity Prices",
+       x = "Commodity",
+       y = "Commodity")
+
+
+
+
+```
+
+
+```{r}
+#Time series analysis:
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(zoo)
+
+# Select relevant columns for time series analysis
+commodities <- c("Cotton", "Coffee", "Cocoa", "Oil")
+
+# Perform time series analysis for each commodity
+for (commodity in commodities) {
+  
+  # Subset the data for the current commodity
+  commodity_data <- Daily_prices_mean_we %>% select(Date, !!commodity)
+  
+  # Plot the time series
+  p1 <- ggplot(commodity_data, aes(x = Date, y = !!sym(commodity))) +
+    geom_line() +
+    labs(title = paste("Time Series of", commodity),
+         x = "Date",
+         y = "Price") +
+    theme_minimal()
+  
+  # Save the plot
+  ggsave(filename = paste("graphs_eda/time_teries_", commodity, ".png"), plot = p1, bg = "white", device = "png")
+  
+  # Calculate and visualize rolling statistics
+  commodity_data <- commodity_data %>%
+    mutate(rolling_mean = zoo::rollmean(!!sym(commodity), k = 30, fill = NA),
+           rolling_sd = zoo::rollapply(!!sym(commodity), width = 30, FUN = sd, fill = NA))
+  
+  p2 <- ggplot(commodity_data, aes(x = Date)) +
+    geom_line(aes(y = !!sym(commodity)), color = "blue", size = 1, alpha = 0.7) +
+    geom_line(aes(y = rolling_mean), color = "red", size = 1) +
+    geom_ribbon(aes(ymin = rolling_mean - rolling_sd, ymax = rolling_mean + rolling_sd), fill = "white", alpha = 0.2) +
+    labs(title = paste("Rolling Statistics of", commodity),
+         x = "Date",
+         y = "Price") +
+    theme_minimal()
+  
+  # Save the plot
+  ggsave(filename = paste("graphs_eda/rolling_statistics_", commodity, ".png"), plot = p2, bg = "white", device = "png")
+  
+  # Seasonal Decomposition
+  decomposed <- decompose(ts(commodity_data[[commodity]], frequency = 12))  # Assuming monthly data
+  
+  p3 <- ggplot() +
+    geom_line(aes(x = commodity_data$Date, y = decomposed$trend), color = "blue", size = 1, alpha = 0.7) +
+    geom_line(aes(x = commodity_data$Date, y = decomposed$seasonal), color = "red", size = 1) +
+    geom_line(aes(x = commodity_data$Date, y = decomposed$random), color = "green", size = 1) +
+    labs(title = paste("Seasonal Decomposition of", commodity),
+         x = "Date",
+         y = "Component Value") +
+    theme_minimal()
+  
+  # Save the plot
+  ggsave(filename = paste("graphs_eda/seasonal_decomposition_", commodity, ".png"), plot = p3, bg = "white", device = "png")
+}
+
+
+
+```
+
