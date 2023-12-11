@@ -160,12 +160,14 @@ print(period_price_diff)
 ```
 
 
+
 ```{r creating COT dfs}
 #Softs
 COT_Cotton<- commodity_data_list[["Cotton"]]
 COT_Cocoa<- commodity_data_list[["Cocoa"]]
 COT_Coffee<- commodity_data_list[["Coffee"]]
 COT_Sugar<- commodity_data_list[["Sugar"]]
+
 
 
 #Other
@@ -187,7 +189,60 @@ COT_Sugar<- commodity_data_list[["Sugar"]]
 # COT_LeanHogs<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="LeanHogs") %>% as_tsibble(index= Date, regular=FALSE)
 # COT_Copper<- read_excel("data/COT_Disaggreated_FuturesAndOptionsCombined.xlsx", sheet="Copper") %>% as_tsibble(index= Date, regular=FALSE)
 
+```
 
 
+
+```{r}
+
+#Lagging the datasets
+
+
+lager <- function(df) {
+    # Lagging price set, we remove last row of t_1
+    t_1 = df[-nrow(df), ]
+    rownames(price_t_1) = NULL
+    t_1$rows = 1:(nrow(df) - 1)
+    # we remove first row of t
+    t = df[-1, ]
+    rownames(t) = NULL
+    t$rows = 1:(nrow(df) - 1)
+
+    # Merging the two sets
+    t_lag = merge(t, t_1, by = "rows") %>% select(-rows)
+
+    # Renaming features
+    names(t_lag) <- gsub(".x", ".t", names(t_lag))
+    names(t_lag) <- gsub(".y", ".t_1", names(t_lag))
+
+    return(t_lag)
+}
+
+
+price_lag = lager(period_price_diff)
+COT_Sugar_lag = lager(COT_Sugar)
+COT_Cocoa_lag = lager(COT_Cocoa)
+COT_Coffee_lag = lager(COT_Coffee)
+COT_Cotton_lag = lager(COT_Cotton)
+
+
+
+# #Lagging price set
+# price_t_1 = period_price_diff[-1043,]
+# rownames(price_t_1) = NULL
+# price_t_1$rows = 1:1042
+# price_t = period_price_diff[-1,]
+# rownames(price_t) = NULL
+# price_t$rows = 1:1042
+# 
+# #merging the two sets
+# price_lag = merge(price_t, price_t_1, by ="rows") %>% select(-rows)
+# #renaming features
+# names(price_lag) <- gsub(".x", ".t", names(price_lag))
+# names(price_lag) <- gsub(".y", ".t_1", names(price_lag))
 
 ```
+
+
+
+

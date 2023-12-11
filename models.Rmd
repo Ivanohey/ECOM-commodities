@@ -7,4 +7,16 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
+
+
+
+
+```{r}
+
+# for each commo: open interest commo ~ delta price commo + delta price commo t-1 + open interest t-1 + autres variables t-1
+
+
+```
+
