@@ -220,12 +220,25 @@ lager <- function(df) {
 
 
 price_lag = lager(period_price_diff)
+price_lag = price_lag[-c(1:141),]
+rownames(price_lag) = NULL
+price_lag$Date.t = substr(price_lag$period.t, 1, 10)
+price_lag = price_lag %>% select(Date.t, everything())
+
+
 COT_Sugar_lag = lager(COT_Sugar)
 COT_Cocoa_lag = lager(COT_Cocoa)
 COT_Coffee_lag = lager(COT_Coffee)
 COT_Cotton_lag = lager(COT_Cotton)
 
+sugar_price_cot <- merge(COT_Sugar_lag, price_lag, by = "Date.t")
+cotton_price_cot <- merge(COT_Cotton_lag, price_lag, by = "Date.t")
+cocoa_price_cot <- merge(COT_Cocoa_lag, price_lag, by = "Date.t")
+coffee_price_cot <- merge(COT_Coffee_lag, price_lag, by = "Date.t")
 
+
+
+write_csv(sugar_price_cot, "../ECOM-commodities/data/sugar_price_cot.csv")
 
 # #Lagging price set
 # price_t_1 = period_price_diff[-1043,]
