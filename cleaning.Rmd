@@ -201,7 +201,7 @@ COT_Sugar<- commodity_data_list[["Sugar"]]
 lager <- function(df) {
     # Lagging price set, we remove last row of t_1
     t_1 = df[-nrow(df), ]
-    rownames(price_t_1) = NULL
+    rownames(t_1) = NULL
     t_1$rows = 1:(nrow(df) - 1)
     # we remove first row of t
     t = df[-1, ]
