@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # for each commo: open interest sugar ~ delta price sugar t + delta price sugar t_1 + open interest t_1 + other variables t_1
 
-```{r}
+```{r SUGAR LM}
 #SUGAR lm
 # Load necessary libraries
 library(tidyverse)
@@ -54,15 +54,15 @@ print(paste("MSE:", mse_sugar))
 print(paste("R-squared:", r2_sugar))
 print(paste("AIC:", aic_sugar))
 
-
+#R-squared: 0.971484189620582
+#AIC: 14517.2534706176
 
 ```
 
 
 
-```{r}
+```{r Cotton LM}
 #Cotton lm
-
 cotton_data <- cotton_price_cot
 
 # Selecting predictor variables
@@ -97,13 +97,14 @@ print(paste("MSE:", mse_cotton))
 print(paste("R-squared:", r2_cotton))
 print(paste("AIC:", aic_cotton))
 
+#R-squared: 0.973180108288965
+#AIC: 13281.2918272419
+
 
 ```
 
-```{r}
-
+```{r Coffee LM}
 #Coffee lm
-
 coffee_data <- coffee_price_cot
 
 # Selecting predictor variables
@@ -138,9 +139,12 @@ print(paste("MSE:", mse_coffee))
 print(paste("R-squared:", r2_coffee))
 print(paste("AIC:", aic_coffee))
 
+# R-squared: 0.987956413120843
+# AIC: 12885.2839667785
+
 ```
 
-```{r}
+```{r COCOA LM}
 #Cocoa lm
 
 cocoa_data <- cocoa_price_cot
@@ -177,8 +181,27 @@ print(paste("MSE:", mse_cocoa))
 print(paste("R-squared:", r2_cocoa))
 print(paste("AIC:", aic_cocoa))
 
+# R-squared: 0.991989382910009
+# AIC: 12812.9068477375
+```
+
+```{r SUGAR LM PCA}
+
 ```
 
 
 
+```{r Cotton LM PCA}
+
+```
+
+
+```{r Coffee LM PCA}
+
+```
+
+
+```{r COCOA LM PCA}
+
+```
 
