@@ -45,7 +45,7 @@ stepwise_sugar <- step(sugar_model, direction = "backward")
 
 # Predict and evaluate the stepwise model
 sugar_predict <- predict(stepwise_sugar, test_data)
-mse_sugar <- mean((test_data$Open_Interest.t - predictions)^2)
+mse_sugar <- mean((test_data$Open_Interest.t - sugar_predict)^2)
 r2_sugar <- summary(stepwise_sugar)$r.squared
 aic_sugar <- AIC(stepwise_sugar)
 
@@ -88,7 +88,7 @@ stepwise_cotton <- step(cotton_model, direction = "backward")
 
 # Predict and evaluate the stepwise model
 cotton_predict <- predict(stepwise_cotton, test_data)
-mse_cotton <- mean((test_data$Open_Interest.t - predictions)^2)
+mse_cotton <- mean((test_data$Open_Interest.t - cotton_predict)^2)
 r2_cotton <- summary(stepwise_cotton)$r.squared
 aic_cotton <- AIC(stepwise_cotton)
 
@@ -130,7 +130,7 @@ stepwise_coffee <- step(coffee_model, direction = "backward")
 
 # Predict and evaluate the stepwise model
 coffee_predict <- predict(stepwise_coffee, test_data)
-mse_coffee <- mean((test_data$Open_Interest.t - predictions)^2)
+mse_coffee <- mean((test_data$Open_Interest.t - coffee_predict)^2)
 r2_coffee <- summary(stepwise_coffee)$r.squared
 aic_coffee <- AIC(stepwise_coffee)
 
@@ -172,7 +172,7 @@ stepwise_cocoa <- step(cocoa_model, direction = "backward")
 
 # Predict and evaluate the stepwise model
 cocoa_predict <- predict(stepwise_cocoa, test_data)
-mse_cocoa <- mean((test_data$Open_Interest.t - predictions)^2)
+mse_cocoa <- mean((test_data$Open_Interest.t - cocoa_predict)^2)
 r2_cocoa <- summary(stepwise_cocoa)$r.squared
 aic_cocoa <- AIC(stepwise_cocoa)
 
