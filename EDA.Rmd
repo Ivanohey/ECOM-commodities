@@ -366,26 +366,26 @@ for (commodity in commodities) {
 
 ```{r}
 # Create a new list to store k-means clustering results
-kmeans_results_list <- list()
-
-# Specify the number of clusters (k)
-num_clusters <- 3  # Adjust as needed
-
-for (commodity in commodities) {
-  pca_result <- pca_results_list[[commodity]]
-  
-  # Extract the variables from the PCA result
-  variables <- 
-  
-  # Perform k-means clustering on the variables
-  kmeans_result <- kmeans(variables, centers = num_clusters)
-  
-  # Add cluster assignments to the original data
-  commodity_data$Cluster <- as.factor(kmeans_result$cluster)
-  
-  # Store the k-means result in the list
-  kmeans_results_list[[commodity]] <- kmeans_result
-}
+# kmeans_results_list <- list()
+# 
+# # Specify the number of clusters (k)
+# num_clusters <- 3  # Adjust as needed
+# 
+# for (commodity in commodities) {
+#   pca_result <- pca_results_list[[commodity]]
+#   
+#   # Extract the variables from the PCA result
+#   variables <- 
+#   
+#   # Perform k-means clustering on the variables
+#   kmeans_result <- kmeans(variables, centers = num_clusters)
+#   
+#   # Add cluster assignments to the original data
+#   commodity_data$Cluster <- as.factor(kmeans_result$cluster)
+#   
+#   # Store the k-means result in the list
+#   kmeans_results_list[[commodity]] <- kmeans_result
+# }
 
 # Display or further process the k-means results as needed
 
