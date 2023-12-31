@@ -1,0 +1,329 @@
+```{r univariate price}
+library(fpp3)
+library(ggplot2)
+library(ggpubr)
+
+#Price statistics for sugar
+summary(Daily_prices_mean_we)
+
+#Plotting sugar price over time$
+Daily_prices_mean_we$Date = as.Date(Daily_prices_mean_we$Date)
+ts_prices = tsibble(Daily_prices_mean_we, index=Date)
+
+sugar = ts_prices %>% select(Date, Sugar)
+autoplot(sugar) + ggtitle("Sugar price") + ylab("Price $") + xlab("Date")
+sugar %>% gg_lag(Sugar, geom="point", lags = c(1:7)) + ggtitle("Autocorrelation of sugar prices")
+
+cotton = ts_prices %>% select(Date, Cotton)
+autoplot(cotton) + ggtitle("Cotton price") + ylab("Price $") + xlab("Date")
+cotton %>% gg_lag(Cotton, geom="point", lags = c(1:7)) + ggtitle("Autocorrelation of cotton prices")
+
+cocoa = ts_prices %>% select(Date, Cocoa)
+autoplot(cocoa) + ggtitle("Cocoa price") + ylab("Price $") + xlab("Date")
+cocoa %>% gg_lag(Cocoa, geom="point", lags = c(1:7)) + ggtitle("Autocorrelation of cocoa prices")
+
+oil = ts_prices %>% select(Date, Oil)
+autoplot(oil) + ggtitle("Oil price") + ylab("Price $") + xlab("Date")
+oil %>% gg_lag(Oil, geom="point", lags = c(1:7)) + ggtitle("Autocorrelation of oil prices")
+
+coffee = ts_prices %>% select(Date, Coffee)
+autoplot(coffee) + ggtitle("Coffee price") + ylab("Price $") + xlab("Date")
+coffee %>% gg_lag(Coffee, geom="point", lags = c(1:7)) + ggtitle("Autocorrelation of coffee prices")
+
+```
+
+```{r differencing}
+sugar_lagged = mutate(sugar, diff=difference(x=sugar$Sugar ,lag=1, differences = 1)) 
+sugar_lagged %>% 
+  select(-Sugar) %>% 
+  na.omit() %>% 
+  autoplot() + ggtitle("Lagged differences over time - Sugar price") + ylab("Difference")
+
+cotton_lagged = mutate(cotton, diff=difference(x=cotton$Cotton ,lag=1, differences = 1))
+cotton_lagged %>%
+  select(-Cotton) %>%
+  na.omit() %>%
+  autoplot() + ggtitle("Lagged differences over time - Cotton price") + ylab("Difference")
+
+cocoa_lagged = mutate(cocoa, diff=difference(x=cocoa$Cocoa ,lag=1, differences = 1))
+cocoa_lagged %>%
+  select(-Cocoa) %>%
+  na.omit() %>%
+  autoplot() + ggtitle("Lagged differences over time - Cocoa price") + ylab("Difference")
+
+coffee_lagged = mutate(coffee, diff=difference(x=coffee$Coffee ,lag=1, differences = 1))
+coffee_lagged %>%
+  select(-Coffee) %>%
+  na.omit() %>%
+  autoplot() + ggtitle("Lagged differences over time - Coffee price") + ylab("Difference")
+
+oil_lagged = mutate(oil, diff=difference(x=oil$Oil ,lag=1, differences = 1))
+oil_lagged %>%
+  select(-Oil) %>%
+  na.omit() %>%
+  autoplot() + ggtitle("Lagged differences over time - Oil price") + ylab("Difference")
+
+```
+
+
+```{r STL decomposition}
+sugar_stl = sugar %>% model(STL(Sugar))
+components(sugar_stl) %>% autoplot() + xlab("Year")
+
+coffee_stl = coffee %>% model(STL(Coffee))
+components(coffee_stl) %>% autoplot() + ylab("Year")
+
+oil_stl = oil %>% model(STL(Oil))
+components(oil_stl) %>% autoplot() + ylab("Year")
+
+cocoa_stl = cocoa %>% model(STL(Cocoa))
+components(cocoa_stl) %>% autoplot() + ylab("Year")
+
+cotton_stl = cotton %>% model(STL(Cotton))
+components(cotton_stl) %>% autoplot() + ylab("Year")
+
+```
+
+```{r Delta_prices}
+ggplot(period_price_diff) + geom_bar(stat="identity", position="stack", aes(x=period, y=Cotton)) + ggtitle("Weekly price difference - Cotton")
+
+ggplot(period_price_diff) + geom_bar(stat="identity", position="stack", aes(x=period, y=Sugar)) + ggtitle("Weekly price difference - Sugar")
+
+ggplot(period_price_diff) + geom_bar(stat="identity", position="stack", aes(x=period, y=Oil)) + ggtitle("Weekly price difference - Oil")
+
+ggplot(period_price_diff) + geom_bar(stat="identity", position="stack", aes(x=period, y=Cocoa)) + ggtitle("Weekly price difference - Cocoa")
+
+ggplot(period_price_diff) + geom_bar(stat="identity", position="stack", aes(x=period, y=Coffee)) + ggtitle("Weekly price difference - Coffee")
+
+summary(period_price_diff)
+
+```
+
+
+```{r Bivariate analysis - Open Interest}
+#Correlation between Open interest and Delta weekly prices for each commodity:
+
+#Cotton
+cotton_oi_diff = mutate(cotton_price_cot, Open_interest_diff= difference(x=cotton_price_cot$Open_Interest.t ,lag=1, differences = 1))
+cotton_oi_diff = na.omit(cotton_oi_diff)
+
+cotton_oi_cor = cor(cotton_oi_diff$Open_interest_diff, cotton_oi_diff$Cotton.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(cotton_oi_diff, 
+          x="Open_interest_diff", 
+          y="Cotton.t", 
+          xlab="Open Interest Weekly difference", 
+          ylab="Cotton price weekly difference",
+          title="Relation between Open Interest and Cotton price differences")
+
+
+#Coffee
+coffee_oi_diff = mutate(coffee_price_cot, Open_interest_diff= difference(x=coffee_price_cot$Open_Interest.t ,lag=1, differences = 1))
+coffee_oi_diff = na.omit(coffee_oi_diff)
+
+coffee_oi_cor = cor(coffee_oi_diff$Open_interest_diff, coffee_oi_diff$Coffee.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(coffee_oi_diff, 
+          x="Open_interest_diff", 
+          y="Coffee.t", 
+          xlab="Open Interest Weekly difference", 
+          ylab="Coffee price weekly difference",
+          title="Relation between Open Interest and Coffee price differences")
+
+
+#Cocoa
+cocoa_oi_diff = mutate(cocoa_price_cot, Open_interest_diff= difference(x=cocoa_price_cot$Open_Interest.t ,lag=1, differences = 1))
+cocoa_oi_diff = na.omit(cocoa_oi_diff)
+
+cocoa_oi_cor = cor(cocoa_oi_diff$Open_interest_diff, cocoa_oi_diff$Cocoa.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(cocoa_oi_diff, 
+          x="Open_interest_diff", 
+          y="Cocoa.t", 
+          xlab="Open Interest Weekly difference", 
+          ylab="Cocoa price weekly difference",
+          title="Relation between Open Interest and Cococa price differences")
+
+
+#Sugar
+sugar_oi_diff = mutate(sugar_price_cot, Open_interest_diff= difference(x=sugar_price_cot$Open_Interest.t ,lag=1, differences = 1))
+sugar_oi_diff = na.omit(sugar_oi_diff)
+
+sugar_oi_cor = cor(sugar_oi_diff$Open_interest_diff, sugar_oi_diff$Sugar.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(sugar_oi_diff, 
+          x="Open_interest_diff", 
+          y="Sugar.t", 
+          xlab="Open Interest Weekly difference", 
+          ylab="Sugar price weekly difference",
+          title="Relation between Open Interest and Sugar price differences")
+
+
+#Oil
+oil_oi_diff = mutate(oil_price_cot, Open_interest_diff= difference(x=oil_price_cot$Open_Interest.t ,lag=1, differences = 1))
+oil_oi_diff = na.omit(oil_oi_diff)
+
+oil_oi_cor = cor(oil_oi_diff$Open_interest_diff, oil_oi_diff$Oil.t, method="pearson")
+
+#Relationship is more or less linear 
+ggscatter(oil_oi_diff, 
+          x="Open_interest_diff", 
+          y="Oil.t", 
+          xlab="Open Interest Weekly difference", 
+          ylab="Oil price weekly difference",
+          title="Relation between Open Interest and Oil price differences")
+
+
+```
+
+```{r Bivariate analysis - Managed money}
+
+#Cotton MMS
+cotton_MMS_diff = mutate(cotton_price_cot, MM_S_diff= difference(x=cotton_price_cot$Mon.t_1_Manager_Shorts.t ,lag=1, differences = 1))
+cotton_MMS_diff = na.omit(cotton_MMS_diff)
+
+cotton_MMS_cor = cor(cotton_MMS_diff$MM_S_diff, cotton_MMS_diff$Cotton.t, method="pearson")
+
+ggscatter(cotton_MMS_diff, 
+          x="MM_S_diff", 
+          y="Cotton.t", 
+          xlab="Managed money short Weekly difference", 
+          ylab="Cotton price weekly difference",
+          title="Relation between Managed Money Shorts and Cotton price differences")
+
+
+#Cotton MML
+cotton_MML_diff = mutate(cotton_price_cot, MM_L_diff= difference(x=cotton_price_cot$Mon.t_1_Manager_Longs.t ,lag=1, differences = 1))
+cotton_MML_diff = na.omit(cotton_MML_diff)
+
+cotton_MML_cor = cor(cotton_MML_diff$MM_L_diff, cotton_MML_diff$Cotton.t, method="pearson")
+
+ggscatter(cotton_MML_diff, 
+          x="MM_L_diff", 
+          y="Cotton.t", 
+          xlab="Managed money Longs Weekly difference", 
+          ylab="Cotton price weekly difference",
+          title="Relation between Managed Money Longs and Cotton price differences")
+
+
+#Sugar
+#Sugar MML
+sugar_MML_diff = mutate(sugar_price_cot, MM_L_diff= difference(x=sugar_price_cot$Mon.t_1_Manager_Longs.t ,lag=1, differences = 1))
+sugar_MML_diff = na.omit(sugar_MML_diff)
+
+sugar_MML_cor = cor(sugar_MML_diff$MM_L_diff, sugar_MML_diff$Sugar.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(sugar_MML_diff, 
+          x="MM_L_diff", 
+          y="Sugar.t", 
+          xlab="Managed Money Longs Weekly difference", 
+          ylab="Sugar price weekly difference",
+          title="Relation between Managed Money Longs and Sugar price differences")
+
+
+#Sugar MMS
+sugar_MMS_diff = mutate(sugar_price_cot, MM_S_diff= difference(x=sugar_price_cot$Mon.t_1_Manager_Shorts.t ,lag=1, differences = 1))
+sugar_MMS_diff = na.omit(sugar_MMS_diff)
+
+sugar_MMS_cor = cor(sugar_MMS_diff$MM_S_diff, sugar_MMS_diff$Sugar.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(sugar_MMS_diff, 
+          x="MM_S_diff", 
+          y="Sugar.t", 
+          xlab="Managed Money Shorts Weekly difference", 
+          ylab="Sugar price weekly difference",
+          title="Relation between Managed Money Shorts and Sugar price differences")
+
+
+#Oil
+#MML
+oil_MML_diff = mutate(oil_price_cot, MM_L_diff= difference(x=oil_price_cot$Mon.t_1_Manager_Longs.t ,lag=1, differences = 1))
+oil_MML_diff = na.omit(oil_MML_diff)
+
+oil_MML_cor = cor(oil_MML_diff$MM_L_diff, oil_MML_diff$Oil.t, method="pearson")
+
+ggscatter(oil_MML_diff, 
+          x="MM_L_diff", 
+          y="Oil.t", 
+          xlab="Managed Money Longs difference", 
+          ylab="Oil price weekly difference",
+          title="Relation between Managed Money Longs and Oil price differences")
+
+#MMS
+oil_MMS_diff = mutate(oil_price_cot, MM_S_diff= difference(x=oil_price_cot$Mon.t_1_Manager_Shorts.t ,lag=1, differences = 1))
+oil_MMS_diff = na.omit(oil_MMS_diff)
+
+oil_MMS_cor = cor(oil_MMS_diff$MM_S_diff, oil_MMS_diff$Oil.t, method="pearson")
+
+#Relationship is more or less linear 
+ggscatter(oil_MMS_diff, 
+          x="MM_S_diff", 
+          y="Oil.t", 
+          xlab="Managed Money Shorts difference", 
+          ylab="Oil price weekly difference",
+          title="Relation between Managed Money Shorts and Oil price differences")
+
+#Cocoa
+cocoa_MML_diff = mutate(cocoa_price_cot, MM_L_diff= difference(x=cocoa_price_cot$Mon.t_1_Manager_Longs.t ,lag=1, differences = 1))
+cocoa_MML_diff = na.omit(cocoa_MML_diff)
+
+cocoa_MML_cor = cor(cocoa_MML_diff$MM_L_diff, cocoa_MML_diff$Cocoa.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(cocoa_MML_diff, 
+          x="MM_L_diff", 
+          y="Cocoa.t", 
+          xlab="Managed Money Longs difference", 
+          ylab="Cocoa price weekly difference",
+          title="Relation between Managed Money Longs and Cococa price differences")
+
+cocoa_MMS_diff = mutate(cocoa_price_cot, MM_S_diff= difference(x=cocoa_price_cot$Mon.t_1_Manager_Shorts.t ,lag=1, differences = 1))
+cocoa_MMS_diff = na.omit(cocoa_MMS_diff)
+
+cocoa_MMS_cor = cor(cocoa_MMS_diff$MM_S_diff, cocoa_MMS_diff$Cocoa.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(cocoa_MMS_diff, 
+          x="MM_S_diff", 
+          y="Cocoa.t", 
+          xlab="Managed Money Shorts difference", 
+          ylab="Cocoa price weekly difference",
+          title="Relation between Managed Money Shorts and Cococa price differences")
+
+#Coffee
+#MML
+coffee_MML_diff = mutate(coffee_price_cot, MM_L_diff= difference(x=coffee_price_cot$Mon.t_1_Manager_Longs.t ,lag=1, differences = 1))
+coffee_MML_diff = na.omit(coffee_MML_diff)
+
+coffee_MML_cor = cor(coffee_MML_diff$MM_L_diff, coffee_MML_diff$Coffee.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(coffee_MML_diff, 
+          x="MM_L_diff", 
+          y="Coffee.t", 
+          xlab="Managed Money Longs Weekly difference", 
+          ylab="Coffee price weekly difference",
+          title="Relation between Managed Money Longs and Coffee price differences")
+
+
+#MMS
+coffee_MMS_diff = mutate(coffee_price_cot, MM_S_diff= difference(x=coffee_price_cot$Mon.t_1_Manager_Shorts.t ,lag=1, differences = 1))
+coffee_MMS_diff = na.omit(coffee_MMS_diff)
+
+coffee_MMS_cor = cor(coffee_MMS_diff$MM_S_diff, coffee_MMS_diff$Coffee.t, method="pearson")
+
+#Relationship is not linear -> Eventually possible to use logistic regression instead
+ggscatter(coffee_MMS_diff, 
+          x="MM_S_diff", 
+          y="Coffee.t", 
+          xlab="Managed Money Shorts Weekly difference", 
+          ylab="Coffee price weekly difference",
+          title="Relation between Managed Money Shorts and Coffee price differences")
+
+```
