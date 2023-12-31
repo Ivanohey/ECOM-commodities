@@ -167,6 +167,7 @@ COT_Cotton<- commodity_data_list[["Cotton"]]
 COT_Cocoa<- commodity_data_list[["Cocoa"]]
 COT_Coffee<- commodity_data_list[["Coffee"]]
 COT_Sugar<- commodity_data_list[["Sugar"]]
+COT_Oil <- commodity_data_list[["CrudeOil"]]
 
 
 
@@ -230,11 +231,13 @@ COT_Sugar_lag = lager(COT_Sugar)
 COT_Cocoa_lag = lager(COT_Cocoa)
 COT_Coffee_lag = lager(COT_Coffee)
 COT_Cotton_lag = lager(COT_Cotton)
+COT_Oil_lag = lager(COT_Oil)
 
 sugar_price_cot <- merge(COT_Sugar_lag, price_lag, by = "Date.t")
 cotton_price_cot <- merge(COT_Cotton_lag, price_lag, by = "Date.t")
 cocoa_price_cot <- merge(COT_Cocoa_lag, price_lag, by = "Date.t")
 coffee_price_cot <- merge(COT_Coffee_lag, price_lag, by = "Date.t")
+oil_price_cot <- merge(COT_Oil_lag, price_lag, by="Date.t")
 
 
 write_csv(COT_Cocoa, "../ECOM-commodities/data/sugar_price_cot.csv")
