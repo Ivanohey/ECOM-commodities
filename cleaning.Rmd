@@ -71,12 +71,67 @@ Daily_prices_mean <- commo_mean(Daily_futures_prices)
 #Creating a column for day of the week
 Daily_prices_mean$Day <- weekdays(as.Date(Daily_prices_mean$Date))
 
+```
 
+```{r Mean of daily volumes}
+Daily_volumes_traded <- read_excel("data/DailyVolumeTraded_2003_2023.xlsx")
+
+#Selecting the needed columns for the soft commodities and the crude oil
+Daily_volumes_traded <- Daily_volumes_traded[, c(1:13, 53:55)]
+Daily_volumes_traded <- Daily_volumes_traded[-c(1,2),]
+colnames(Daily_volumes_traded)[1] = "Date"
+
+#Transforming types to numeric
+Daily_volumes_traded[, 2:16] <- lapply(2:16, function(x) as.numeric(Daily_volumes_traded[[x]]))
+
+#Taking the mean of the future prices
+commo_mean <- function(set) {
+  result_set <- set %>% 
+    mutate(Date,
+           Cotton = rowMeans(select(., as.numeric(2:4)), na.rm = TRUE),
+           Coffee = rowMeans(select(., 5:7),na.rm = TRUE),
+           Sugar = rowMeans(select(., 8:10),na.rm = TRUE),
+           Cocoa = rowMeans(select(., 11:13), na.rm = TRUE),
+           Oil = rowMeans(select(., 14:16), na.rm = TRUE),
+           .keep = "none")
+  
+  return(result_set)
+}
+
+# Compute mean by group
+Daily_volumes_mean <- commo_mean(Daily_volumes_traded)
+
+#Creating a column for day of the week
+Daily_volumes_mean$Day <- weekdays(as.Date(Daily_volumes_mean$Date))
 
 ```
 
-```{r Cleaning empty values}
-# Assuming your dataset is called Daily_prices_mean
+```{r cleaning empty values volumes}
+column_names <- colnames(Daily_volumes_mean)
+columns_to_process <- setdiff(column_names, c("Day", "Date"))
+
+Daily_volumes_mean_we <- Daily_volumes_mean %>%
+  arrange(Date) %>%
+  mutate(across(all_of(columns_to_process), 
+                ~ ifelse(!Day %in% c("Saturday", "Sunday") & is.na(.), NA_real_, .),
+                .names = "{.col}"))
+
+# Use tidyr::fill to fill the weekend indicator
+Daily_volumes_mean_we <- Daily_volumes_mean_we %>%
+  tidyr::fill(everything(), .direction = "downup")
+
+Daily_volumes_mean_we <- Daily_volumes_mean_we %>%
+  mutate(across(all_of(columns_to_process),
+                ~ ifelse(!Day %in% c("Saturday", "Sunday") & is.na(.), 
+                         (lag(., default = first(na.omit(.))) + lead(., default = last(na.omit(.)))) / 2, .),
+                .names = "{.col}_filled"))
+
+Daily_volumes_mean_we <- Daily_volumes_mean_we %>% select(Date, Day, Cotton, Coffee, Sugar, Cocoa, Oil)
+Daily_volumes_mean_we <- Daily_volumes_mean_we[-c(1:3), ]
+
+```
+
+```{r Cleaning empty values - prices}
 column_names <- colnames(Daily_prices_mean)
 columns_to_process <- setdiff(column_names, c("Day", "Date"))
 
@@ -194,7 +249,7 @@ COT_Oil <- commodity_data_list[["CrudeOil"]]
 
 
 
-```{r}
+```{r Creating lagged datasets}
 
 #Lagging the datasets
 
@@ -259,6 +314,11 @@ write_csv(sugar_price_cot, "../ECOM-commodities/data/sugar_price_cot.csv")
 
 ```
 
+```{r volumes data}
+
+
+
+```
 
 
 

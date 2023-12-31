@@ -33,31 +33,31 @@ coffee %>% gg_lag(Coffee, geom="point", lags = c(1:7)) + ggtitle("Autocorrelatio
 ```
 
 ```{r differencing}
-sugar_lagged = mutate(sugar, diff=difference(x=sugar$Sugar ,lag=1, differences = 1)) 
+sugar_lagged = mutate(sugar, Sugar_diff=difference(x=sugar$Sugar ,lag=1, differences = 1)) 
 sugar_lagged %>% 
   select(-Sugar) %>% 
   na.omit() %>% 
   autoplot() + ggtitle("Lagged differences over time - Sugar price") + ylab("Difference")
 
-cotton_lagged = mutate(cotton, diff=difference(x=cotton$Cotton ,lag=1, differences = 1))
+cotton_lagged = mutate(cotton, Cotton_diff=difference(x=cotton$Cotton ,lag=1, differences = 1))
 cotton_lagged %>%
   select(-Cotton) %>%
   na.omit() %>%
   autoplot() + ggtitle("Lagged differences over time - Cotton price") + ylab("Difference")
 
-cocoa_lagged = mutate(cocoa, diff=difference(x=cocoa$Cocoa ,lag=1, differences = 1))
+cocoa_lagged = mutate(cocoa, Cocoa_diff=difference(x=cocoa$Cocoa ,lag=1, differences = 1))
 cocoa_lagged %>%
   select(-Cocoa) %>%
   na.omit() %>%
   autoplot() + ggtitle("Lagged differences over time - Cocoa price") + ylab("Difference")
 
-coffee_lagged = mutate(coffee, diff=difference(x=coffee$Coffee ,lag=1, differences = 1))
+coffee_lagged = mutate(coffee, Coffee_diff=difference(x=coffee$Coffee ,lag=1, differences = 1))
 coffee_lagged %>%
   select(-Coffee) %>%
   na.omit() %>%
   autoplot() + ggtitle("Lagged differences over time - Coffee price") + ylab("Difference")
 
-oil_lagged = mutate(oil, diff=difference(x=oil$Oil ,lag=1, differences = 1))
+oil_lagged = mutate(oil, Oil_diff=difference(x=oil$Oil ,lag=1, differences = 1))
 oil_lagged %>%
   select(-Oil) %>%
   na.omit() %>%
@@ -109,7 +109,7 @@ cotton_oi_diff = na.omit(cotton_oi_diff)
 
 cotton_oi_cor = cor(cotton_oi_diff$Open_interest_diff, cotton_oi_diff$Cotton.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear -> Eventually possible to use Polynomial regression instead
 ggscatter(cotton_oi_diff, 
           x="Open_interest_diff", 
           y="Cotton.t", 
@@ -124,7 +124,7 @@ coffee_oi_diff = na.omit(coffee_oi_diff)
 
 coffee_oi_cor = cor(coffee_oi_diff$Open_interest_diff, coffee_oi_diff$Coffee.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear -> Eventually possible to use Polynomial regression instead
 ggscatter(coffee_oi_diff, 
           x="Open_interest_diff", 
           y="Coffee.t", 
@@ -139,7 +139,7 @@ cocoa_oi_diff = na.omit(cocoa_oi_diff)
 
 cocoa_oi_cor = cor(cocoa_oi_diff$Open_interest_diff, cocoa_oi_diff$Cocoa.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear -> Eventually possible to use polynomial regression instead
 ggscatter(cocoa_oi_diff, 
           x="Open_interest_diff", 
           y="Cocoa.t", 
@@ -154,7 +154,7 @@ sugar_oi_diff = na.omit(sugar_oi_diff)
 
 sugar_oi_cor = cor(sugar_oi_diff$Open_interest_diff, sugar_oi_diff$Sugar.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear -> Eventually possible to use polynomial regression instead
 ggscatter(sugar_oi_diff, 
           x="Open_interest_diff", 
           y="Sugar.t", 
@@ -217,7 +217,7 @@ sugar_MML_diff = na.omit(sugar_MML_diff)
 
 sugar_MML_cor = cor(sugar_MML_diff$MM_L_diff, sugar_MML_diff$Sugar.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear -> Eventually possible to use Polynomial regression instead
 ggscatter(sugar_MML_diff, 
           x="MM_L_diff", 
           y="Sugar.t", 
@@ -232,7 +232,7 @@ sugar_MMS_diff = na.omit(sugar_MMS_diff)
 
 sugar_MMS_cor = cor(sugar_MMS_diff$MM_S_diff, sugar_MMS_diff$Sugar.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear -> Eventually possible to use Polynomial regression instead
 ggscatter(sugar_MMS_diff, 
           x="MM_S_diff", 
           y="Sugar.t", 
@@ -325,5 +325,51 @@ ggscatter(coffee_MMS_diff,
           xlab="Managed Money Shorts Weekly difference", 
           ylab="Coffee price weekly difference",
           title="Relation between Managed Money Shorts and Coffee price differences")
+
+
+```
+
+```{r Covariance}
+all_commodities = merge(sugar_lagged, cotton_lagged, by="Date") %>% merge(cocoa_lagged, by="Date") %>% merge(coffee_lagged, by="Date") %>% merge(oil_lagged, by="Date") %>% na.omit()
+cov_all_comm = all_commodities %>% select(Cocoa, Cotton, Oil, Coffee, Sugar) %>% cor(method=c("pearson", "kendall", "spearman"))
+cov_all_comm =round(cov_all_comm, 2)
+melted_cormat =melt(cov_all_comm)
+
+# Get lower triangle of the correlation matrix
+get_lower_tri<-function(cormat){
+  cormat[upper.tri(cormat)] <- NA
+  return(cormat)
+}
+# Get upper triangle of the correlation matrix
+get_upper_tri <- function(cormat){
+  cormat[lower.tri(cormat)]<- NA
+  return(cormat)
+}
+
+upper_tri = get_upper_tri(cov_all_comm)
+
+# Melt the correlation matrix
+library(reshape2)
+melted_cormat <- melt(upper_tri, na.rm = TRUE)
+# Heatmap
+library(ggplot2)
+ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "darkblue", 
+                      high = "red", 
+                      midpoint = 0.5, 
+                      limit = c(0,1), 
+                      space = "Lab", 
+                      name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+  theme(axis.text.x = element_text(angle = 45, 
+                                   vjust = 1, 
+                                   size = 12, 
+                                   hjust = 1))+
+  coord_fixed()+
+  ggtitle("Correlation heatmap of Prices")+
+  geom_text(aes(Var2, Var1, label = value), color = "black", size = 4)
+
+# There are no negative correlations. Price of Coffee is correlated with Sugar and Cotton
 
 ```
