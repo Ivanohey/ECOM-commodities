@@ -25,7 +25,7 @@ for (commo_name in names(Daily_prices_mean_we[,3:7])) {
     ggtitle(paste(commo_name, " Price"))+
     geom_area(fill = "#69b3a2", alpha = 0.5) +
     geom_line(color = "#69b3a2") +
-    ylab("Price") +
+    ylab("Price (in $US)") +
     theme_ipsum()
     
   interactive_area_price_chart <- ggplotly(price_chart)
@@ -121,7 +121,7 @@ for (commodity in commodities) {
     geom_ribbon(aes(ymin = rolling_mean - rolling_sd, ymax = rolling_mean + rolling_sd), fill = "white", alpha = 0.2) +
     labs(title = paste("Rolling Statistics of", commodity),
          x = "Date",
-         y = "Price") +
+         y = "Price (in $US)") +
     theme_minimal()
   
   # Save the plot

@@ -295,7 +295,7 @@ coffee_price_cot <- merge(COT_Coffee_lag, price_lag, by = "Date.t")
 oil_price_cot <- merge(COT_Oil_lag, price_lag, by="Date.t")
 
 
-
+write_csv(COT_Cocoa, "../ECOM-commodities/data/sugar_price_cot.csv")
 write_csv(sugar_price_cot, "../ECOM-commodities/data/sugar_price_cot.csv")
 
 # #Lagging price set
