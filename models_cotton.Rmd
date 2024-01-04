@@ -1,0 +1,376 @@
+---
+title: "models_2"
+author: "Niccolò Cherubini"
+date: "2024-01-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# COTTON
+
+for each commo: open interest cotton \~ delta price cotton t + delta price cotton t_1 + open interest t_1 + other variables t_1
+
+```{r}
+#Data splitting for cotton
+library(tidyverse)
+library(caret)
+library(randomForest)
+
+
+# Splitting the dataset in 0.7 train - 0.3 test
+set.seed(42) # for reproducibility
+
+train_indices_cotton <- sample(1:nrow(cotton_price_cot), size = 0.7 * nrow(cotton_price_cot))
+train_cotton <- cotton_price_cot[train_indices_cotton, ]
+test_cotton <- cotton_price_cot[-train_indices_cotton, ]
+
+# Selecting predictor variables
+predictors_cotton <- names(cotton_price_cot)[grepl(".t_1", names(cotton_price_cot))]
+predictors_cotton <- setdiff(predictors_cotton, c("Sugar.t_1", "Cocoa.t_1", "Coffee.t_1", "Sugar.t", "Cocoa.t", "Coffee.t"))
+
+
+```
+
+## AIC
+
+```{r cotton LM AIC open interest}
+#cotton LM
+
+predictors_cotton_oi <- c(predictors_cotton, "Cotton.t")
+
+#train data
+train_cotton_oi <- train_cotton %>% select(all_of(c("Open_Interest.t", predictors_cotton_oi)))
+train_cotton_oi <- train_cotton_oi %>% select_if(~is.numeric(.))
+
+#test data
+test_cotton_oi <- test_cotton %>% select(all_of(c("Open_Interest.t", predictors_cotton_oi)))
+test_cotton_oi <- test_cotton_oi %>% select_if(~is.numeric(.))
+
+
+# Linear model
+cotton_lm_oi_aic <- lm(Open_Interest.t ~ ., data = train_cotton_oi)
+
+# Stepwise model selection based on AIC
+stepwise_cotton_oi <- step(cotton_lm_oi_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cotton_pred_oi_aic <- predict(stepwise_cotton_oi, test_cotton_oi)
+mse_cotton_oi_aic <- mean((test_cotton_oi$Open_Interest.t - cotton_pred_oi_aic)^2)
+r2_cotton_oi_aic <- summary(stepwise_cotton_oi)$r.squared
+aic_cotton_oi_aic <- AIC(stepwise_cotton_oi)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton_oi_aic))
+print(paste("R-squared:", r2_cotton_oi_aic))
+print(paste("AIC:", aic_cotton_oi_aic))
+
+#R-squared: 0.973180108288965
+#AIC: 13281.2918272419
+
+```
+
+## RFE
+
+```{r cotton LM RFE open interest}
+
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+cotton_rfe_var_oi <- rfe(train_cotton_oi[, -which(names(train_cotton_oi) == "Open_Interest.t")], 
+               train_cotton_oi$Open_Interest.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(cotton_rfe_var_oi)
+
+cotton_oi_rfe = c("Total_Reportable_Shorts.t_1", "Open_Interest.t_1", "Total_Reportable_Longs.t_1", "Mon.t_1_Manager_Spreads.t", "Producer_Shorts.t_1")
+
+train_cotton_oi_rfe <- train_cotton_oi %>% select(all_of(c("Open_Interest.t", "Cotton.t", cotton_oi_rfe)))
+test_cotton_oi_rfe <- test_cotton_oi %>% select(all_of(c("Open_Interest.t", "Cotton.t", cotton_oi_rfe)))
+
+# Linear model
+cotton_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_cotton_oi_rfe)
+
+
+# Predict and evaluate the stepwise model
+cotton_pred_oi_rfe <- predict(cotton_lm_oi_rfe, test_cotton_oi_rfe)
+mse_cotton_oi_rfe <- mean((test_cotton_oi_rfe$Open_Interest.t - cotton_pred_oi_rfe)^2)
+r2_cotton_oi_rfe <- summary(cotton_lm_oi_rfe)$r.squared
+aic_cotton_oi_rfe <- AIC(cotton_lm_oi_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton_oi_rfe))
+print(paste("R-squared:", r2_cotton_oi_rfe))
+print(paste("AIC:", aic_cotton_oi_rfe))
+
+#R-squared: 0.971484189620582
+#AIC: 14517.2534706176
+
+```
+
+## LASSO
+
+```{r cotton Open Interest LASSO Regression}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+
+# Scale the features
+preprocess_params_cotton_oi <- preProcess(train_cotton_oi, method = c("center", "scale"))
+cotton_train_scaled_oi <- predict(preprocess_params_cotton_oi, train_cotton_oi)
+cotton_test_scaled_oi <- predict(preprocess_params_cotton_oi, test_cotton_oi)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+cotton_lasso_oi <- cv.glmnet(as.matrix(cotton_train_scaled_oi), cotton_train_scaled_oi$Mon.t_1_Manager_Shorts.t, alpha = 1)
+
+# Make predictions and evaluate the model
+cotton_lasso_pred_oi <- predict(cotton_lasso_oi, as.matrix(cotton_test_scaled_oi), s = "lambda.min")
+mse_lasso_oi <- mean((cotton_test_scaled_oi$Mon.t_1_Manager_Shorts.t - cotton_lasso_pred_oi)^2)
+r2_lasso_oi <- cor(cotton_test_scaled_oi$Mon.t_1_Manager_Shorts.t, as.vector(cotton_lasso_pred_oi))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_lasso_oi, r2 = r2_lasso_oi)
+
+```
+
+# MONEY MANAGERS
+
+## SHORTS
+
+### AIC
+
+```{r}
+
+predictors_cotton_MMS <- c(predictors_cotton, "Cotton.t")
+
+#train data
+train_cotton_MMS <- train_cotton %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cotton_MMS)))
+train_cotton_MMS <- train_cotton_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_cotton_MMS <- test_cotton %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cotton_MMS)))
+test_cotton_MMS <- test_cotton_MMS %>% select_if(~is.numeric(.))
+
+
+# Linear model
+cotton_lm_MMS_aic <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cotton_MMS)
+
+# Stepwise model selection based on AIC
+stepwise_cotton_MMS <- step(cotton_lm_MMS_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cotton_pred_MMS_aic <- predict(stepwise_cotton_MMS, test_cotton_MMS)
+mse_cotton_MMS_aic <- mean((test_cotton_MMS$Mon.t_1_Manager_Shorts.t - cotton_pred_MMS_aic)^2)
+r2_cotton_MMS_aic <- summary(stepwise_cotton_MMS)$r.squared
+aic_cotton_MMS_aic <- AIC(stepwise_cotton_MMS)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton_MMS_aic))
+print(paste("R-squared:", r2_cotton_MMS_aic))
+print(paste("AIC:", aic_cotton_MMS_aic))
+
+
+
+```
+
+### RFE
+
+```{r}
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+cotton_rfe_var_MMS <- rfe(train_cotton_MMS[, -which(names(train_cotton_MMS) == "Mon.t_1_Manager_Shorts.t")], 
+               train_cotton_MMS$Mon.t_1_Manager_Shorts.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(cotton_rfe_var_MMS)
+
+cotton_MMS_rfe = c("Mon.t_1_Manager_Shorts.t_1", "Non_Reportable_Shorts.t_1", "Producer_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Mon.t_1_Manager_Longs.t")
+
+train_cotton_MMS_rfe <- train_cotton_MMS %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", "Cotton.t", cotton_MMS_rfe)))
+test_cotton_MMS_rfe <- test_cotton_MMS %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", "Cotton.t", cotton_MMS_rfe)))
+
+# Linear model
+cotton_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cotton_MMS_rfe)
+
+
+# Predict and evaluate the stepwise model
+cotton_pred_MMS_rfe <- predict(cotton_lm_MMS_rfe, test_cotton_MMS_rfe)
+mse_cotton_MMS_rfe <- mean((test_cotton_MMS_rfe$Open_Interest.t - cotton_pred_MMS_rfe)^2)
+r2_cotton_MMS_rfe <- summary(cotton_lm_MMS_rfe)$r.squared
+aic_cotton_MMS_rfe <- AIC(cotton_lm_MMS_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton_MMS_rfe))
+print(paste("R-squared:", r2_cotton_MMS_rfe))
+print(paste("AIC:", aic_cotton_MMS_rfe))
+```
+
+### LASSO
+
+```{r cotton Money Managers Shorts LASSO Regression}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+# Adapting data to model and ensuring all predictor columns are numeric
+# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+predictors_cotton_MMS <- c(predictors_cotton, "Cotton.t")
+
+#train data
+train_cotton_MMS <- train_cotton %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cotton_MMS)))
+train_cotton_MMS <- train_cotton_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_cotton_MMS <- test_cotton %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cotton_MMS)))
+test_cotton_MMS <- test_cotton_MMS %>% select_if(~is.numeric(.))
+
+
+# Scale the features
+preprocess_params_cotton_MMS <- preProcess(train_cotton_MMS, method = c("center", "scale"))
+cotton_train_scaled_MMS <- predict(preprocess_params_cotton_MMS, train_cotton_MMS)
+cotton_test_scaled_MMS <- predict(preprocess_params_cotton_MMS, test_cotton_MMS)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+cotton_lasso_MMS <- cv.glmnet(as.matrix(cotton_train_scaled_MMS), cotton_train_scaled_MMS$Mon.t_1_Manager_Shorts.t, alpha = 1)
+
+# Make predictions and evaluate the model
+cotton_lasso_pred_MMS <- predict(cotton_lasso_MMS, as.matrix(cotton_test_scaled_MMS), s = "lambda.min")
+mse_MMS <- mean((cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - cotton_lasso_pred_MMS)^2)
+r2_MMS <- cor(cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, as.vector(cotton_lasso_pred_MMS))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_MMS, r2 = r2_MMS)
+
+
+
+```
+
+## Longs
+
+### AIC
+```{r}
+
+predictors_cotton_MML <- c(predictors_cotton, "Cotton.t")
+
+#train data
+train_cotton_MML <- train_cotton %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cotton_MML)))
+train_cotton_MML <- train_cotton_MML %>% select_if(~is.numeric(.))
+
+#test data
+test_cotton_MML <- test_cotton %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cotton_MML)))
+test_cotton_MML <- test_cotton_MML %>% select_if(~is.numeric(.))
+
+
+# Linear model
+cotton_lm_MML_aic <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cotton_MML)
+
+# Stepwise model selection based on AIC
+stepwise_cotton_MML <- step(cotton_lm_MML_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cotton_pred_MML_aic <- predict(stepwise_cotton_MML, test_cotton_MML)
+mse_cotton_MML_aic <- mean((test_cotton_MML$Mon.t_1_Manager_Shorts.t - cotton_pred_MML_aic)^2)
+r2_cotton_MML_aic <- summary(stepwise_cotton_MML)$r.squared
+aic_cotton_MML_aic <- AIC(stepwise_cotton_MML)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton_MML_aic))
+print(paste("R-squared:", r2_cotton_MML_aic))
+print(paste("AIC:", aic_cotton_MML_aic))
+
+
+
+```
+
+### RFE
+```{r}
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+cotton_rfe_var_MML <- rfe(train_cotton_MML[, -which(names(train_cotton_MML) == "Mon.t_1_Manager_Longs.t")], 
+               train_cotton_MML$Mon.t_1_Manager_Longs.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(cotton_rfe_var_MML)
+
+cotton_MML_rfe = c("Mon.t_1_Manager_Longs.t_1", "Producer_Shorts.t_1", "Other_Reportable_Longs.t_1", "Cotton.t_1", "Mon.t_1_Manager_Shorts.t")
+
+train_cotton_MML_rfe <- train_cotton_MML %>% select(all_of(c("Mon.t_1_Manager_Longs.t", "Cotton.t", cotton_MML_rfe)))
+test_cotton_MML_rfe <- test_cotton_MML %>% select(all_of(c("Mon.t_1_Manager_Longs.t", "Cotton.t", cotton_MML_rfe)))
+
+# Linear model
+cotton_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cotton_MML_rfe)
+
+
+# Predict and evaluate the stepwise model
+cotton_pred_MML_rfe <- predict(cotton_lm_MML_rfe, test_cotton_MML_rfe)
+mse_cotton_MML_rfe <- mean((test_cotton_MML_rfe$Mon.t_1_Manager_Longs.t - cotton_pred_MML_rfe)^2)
+r2_cotton_MML_rfe <- summary(cotton_lm_MML_rfe)$r.squared
+aic_cotton_MML_rfe <- AIC(cotton_lm_MML_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton_MML_rfe))
+print(paste("R-squared:", r2_cotton_MML_rfe))
+print(paste("AIC:", aic_cotton_MML_rfe))
+```
+
+
+### LASSO
+```{r cotton Money Managers Shorts LASSO Regression}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+# Adapting data to model and ensuring all predictor columns are numeric
+
+predictors_cotton_MML <- c(predictors_cotton, "Cotton.t")
+
+#train data
+train_cotton_MML <- train_cotton %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cotton_MML)))
+train_cotton_MML <- train_cotton_MML %>% select_if(~is.numeric(.))
+
+#test data
+test_cotton_MML <- test_cotton %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cotton_MML)))
+test_cotton_MML <- test_cotton_MML %>% select_if(~is.numeric(.))
+
+
+# Scale the features
+preprocess_params_cotton_MML <- preProcess(train_cotton_MML, method = c("center", "scale"))
+cotton_train_scaled_MML <- predict(preprocess_params_cotton_MML, train_cotton_MML)
+cotton_test_scaled_MML <- predict(preprocess_params_cotton_MML, test_cotton_MML)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+cotton_lasso_MML <- cv.glmnet(as.matrix(cotton_train_scaled_MML), cotton_train_scaled_MML$Mon.t_1_Manager_Longs.t, alpha = 1)
+
+# Make predictions and evaluate the model
+cotton_lasso_pred_MML <- predict(cotton_lasso_MML, as.matrix(cotton_test_scaled_MML), s = "lambda.min")
+mse_MML <- mean((cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t - cotton_lasso_pred_MML)^2)
+r2_MML <- cor(cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t, as.vector(cotton_lasso_pred_MML))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_MML, r2 = r2_MML)
+
+```

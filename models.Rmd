@@ -205,3 +205,35 @@ print(paste("AIC:", aic_cocoa))
 
 ```
 
+
+
+#MANAGED MONEY 
+
+```{r SUGAR LM Managed_money}
+# we use a polynomial regression
+
+
+```
+
+
+
+```{r Cotton LM Managed_money}
+# we use a polynomial regression
+
+
+
+```
+
+
+```{r Coffee LM Managed_money}
+# we use a logistic regression
+
+
+```
+
+
+```{r COCOA LM Managed_money}
+# we use a logistic regression
+
+
+```

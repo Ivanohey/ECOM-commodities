@@ -1,0 +1,378 @@
+---
+title: "models_2"
+author: "Niccolò Cherubini"
+date: "2024-01-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# COCOA
+
+for each commo: open interest cocoa \~ delta price cocoa t + delta price cocoa t_1 + open interest t_1 + other variables t_1
+
+```{r}
+#Data splitting for cocoa
+library(tidyverse)
+library(caret)
+library(randomForest)
+
+
+# Splitting the dataset in 0.7 train - 0.3 test
+set.seed(42) # for reproducibility
+
+train_indices_cocoa <- sample(1:nrow(cocoa_price_cot), size = 0.7 * nrow(cocoa_price_cot))
+train_cocoa <- cocoa_price_cot[train_indices_cocoa, ]
+test_cocoa <- cocoa_price_cot[-train_indices_cocoa, ]
+
+# Selecting predictor variables
+predictors_cocoa <- names(cocoa_price_cot)[grepl(".t_1", names(cocoa_price_cot))]
+predictors_cocoa <- setdiff(predictors_cocoa, c("Sugar.t_1", "Coffee.t_1", "Cotton.t_1", "Sugar.t", "Coffee.t", "Cotton.t"))
+
+
+```
+
+## AIC
+
+```{r cocoa LM AIC open interest}
+#cocoa LM
+
+predictors_cocoa_oi <- c(predictors_cocoa, "Cocoa.t")
+
+#train data
+train_cocoa_oi <- train_cocoa %>% select(all_of(c("Open_Interest.t", predictors_cocoa_oi)))
+train_cocoa_oi <- train_cocoa_oi %>% select_if(~is.numeric(.))
+
+#test data
+test_cocoa_oi <- test_cocoa %>% select(all_of(c("Open_Interest.t", predictors_cocoa_oi)))
+test_cocoa_oi <- test_cocoa_oi %>% select_if(~is.numeric(.))
+
+
+# Linear model
+cocoa_lm_oi_aic <- lm(Open_Interest.t ~ ., data = train_cocoa_oi)
+
+# Stepwise model selection based on AIC
+stepwise_cocoa_oi <- step(cocoa_lm_oi_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cocoa_pred_oi_aic <- predict(stepwise_cocoa_oi, test_cocoa_oi)
+mse_cocoa_oi_aic <- mean((test_cocoa_oi$Open_Interest.t - cocoa_pred_oi_aic)^2)
+r2_cocoa_oi_aic <- summary(stepwise_cocoa_oi)$r.squared
+aic_cocoa_oi_aic <- AIC(stepwise_cocoa_oi)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa_oi_aic))
+print(paste("R-squared:", r2_cocoa_oi_aic))
+print(paste("AIC:", aic_cocoa_oi_aic))
+
+#R-squared: 0.973180108288965
+#AIC: 13281.2918272419
+
+```
+
+## RFE
+
+```{r cocoa LM RFE open interest}
+
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+cocoa_rfe_var_oi <- rfe(train_cocoa_oi[, -which(names(train_cocoa_oi) == "Open_Interest.t")], 
+               train_cocoa_oi$Open_Interest.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(cocoa_rfe_var_oi)
+
+cocoa_oi_rfe = c("Total_Reportable_Shorts.t_1", "Open_Interest.t_1", "Total_Reportable_Longs.t_1", "Mon.t_1_Manager_Spreads.t", "Mon.t_1_Manager_Longs.t")
+
+train_cocoa_oi_rfe <- train_cocoa_oi %>% select(all_of(c("Open_Interest.t", "Cocoa.t", cocoa_oi_rfe)))
+test_cocoa_oi_rfe <- test_cocoa_oi %>% select(all_of(c("Open_Interest.t", "Cocoa.t", cocoa_oi_rfe)))
+
+# Linear model
+cocoa_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_cocoa_oi_rfe)
+
+
+# Predict and evaluate the stepwise model
+cocoa_pred_oi_rfe <- predict(cocoa_lm_oi_rfe, test_cocoa_oi_rfe)
+mse_cocoa_oi_rfe <- mean((test_cocoa_oi_rfe$Open_Interest.t - cocoa_pred_oi_rfe)^2)
+r2_cocoa_oi_rfe <- summary(cocoa_lm_oi_rfe)$r.squared
+aic_cocoa_oi_rfe <- AIC(cocoa_lm_oi_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa_oi_rfe))
+print(paste("R-squared:", r2_cocoa_oi_rfe))
+print(paste("AIC:", aic_cocoa_oi_rfe))
+
+#R-squared: 0.971484189620582
+#AIC: 14517.2534706176
+
+```
+
+## LASSO
+
+```{r cocoa Open Interest LASSO Regression}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+
+# Scale the features
+preprocess_params_cocoa_oi <- preProcess(train_cocoa_oi, method = c("center", "scale"))
+cocoa_train_scaled_oi <- predict(preprocess_params_cocoa_oi, train_cocoa_oi)
+cocoa_test_scaled_oi <- predict(preprocess_params_cocoa_oi, test_cocoa_oi)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+cocoa_lasso_oi <- cv.glmnet(as.matrix(cocoa_train_scaled_oi), cocoa_train_scaled_oi$Mon.t_1_Manager_Shorts.t, alpha = 1)
+
+# Make predictions and evaluate the model
+cocoa_lasso_pred_oi <- predict(cocoa_lasso_oi, as.matrix(cocoa_test_scaled_oi), s = "lambda.min")
+mse_lasso_oi <- mean((cocoa_test_scaled_oi$Mon.t_1_Manager_Shorts.t - cocoa_lasso_pred_oi)^2)
+r2_lasso_oi <- cor(cocoa_test_scaled_oi$Mon.t_1_Manager_Shorts.t, as.vector(cocoa_lasso_pred_oi))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_lasso_oi, r2 = r2_lasso_oi)
+
+```
+
+# MONEY MANAGERS
+
+## SHORTS
+
+### AIC
+
+```{r}
+
+predictors_cocoa_MMS <- c(predictors_cocoa, "Cocoa.t")
+
+#train data
+train_cocoa_MMS <- train_cocoa %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cocoa_MMS)))
+train_cocoa_MMS <- train_cocoa_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_cocoa_MMS <- test_cocoa %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cocoa_MMS)))
+test_cocoa_MMS <- test_cocoa_MMS %>% select_if(~is.numeric(.))
+
+
+# Linear model
+cocoa_lm_MMS_aic <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cocoa_MMS)
+
+# Stepwise model selection based on AIC
+stepwise_cocoa_MMS <- step(cocoa_lm_MMS_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cocoa_pred_MMS_aic <- predict(stepwise_cocoa_MMS, test_cocoa_MMS)
+mse_cocoa_MMS_aic <- mean((test_cocoa_MMS$Mon.t_1_Manager_Shorts.t - cocoa_pred_MMS_aic)^2)
+r2_cocoa_MMS_aic <- summary(stepwise_cocoa_MMS)$r.squared
+aic_cocoa_MMS_aic <- AIC(stepwise_cocoa_MMS)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa_MMS_aic))
+print(paste("R-squared:", r2_cocoa_MMS_aic))
+print(paste("AIC:", aic_cocoa_MMS_aic))
+
+
+
+```
+
+### RFE
+
+```{r}
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+cocoa_rfe_var_MMS <- rfe(train_cocoa_MMS[, -which(names(train_cocoa_MMS) == "Mon.t_1_Manager_Shorts.t")], 
+               train_cocoa_MMS$Mon.t_1_Manager_Shorts.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(cocoa_rfe_var_MMS)
+
+cocoa_MMS_rfe = c("Mon.t_1_Manager_Shorts.t_1", "Producer_Longs.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+
+
+train_cocoa_MMS_rfe <- train_cocoa_MMS %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", "Cocoa.t", cocoa_MMS_rfe)))
+test_cocoa_MMS_rfe <- test_cocoa_MMS %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", "Cocoa.t", cocoa_MMS_rfe)))
+
+# Linear model
+cocoa_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cocoa_MMS_rfe)
+
+
+# Predict and evaluate the stepwise model
+cocoa_pred_MMS_rfe <- predict(cocoa_lm_MMS_rfe, test_cocoa_MMS_rfe)
+mse_cocoa_MMS_rfe <- mean((test_cocoa_MMS_rfe$Open_Interest.t - cocoa_pred_MMS_rfe)^2)
+r2_cocoa_MMS_rfe <- summary(cocoa_lm_MMS_rfe)$r.squared
+aic_cocoa_MMS_rfe <- AIC(cocoa_lm_MMS_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa_MMS_rfe))
+print(paste("R-squared:", r2_cocoa_MMS_rfe))
+print(paste("AIC:", aic_cocoa_MMS_rfe))
+```
+
+### LASSO
+
+```{r cocoa Money Managers Shorts LASSO Regression}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+# Adapting data to model and ensuring all predictor columns are numeric
+# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+predictors_cocoa_MMS <- c(predictors_cocoa, "Cocoa.t")
+
+#train data
+train_cocoa_MMS <- train_cocoa %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cocoa_MMS)))
+train_cocoa_MMS <- train_cocoa_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_cocoa_MMS <- test_cocoa %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cocoa_MMS)))
+test_cocoa_MMS <- test_cocoa_MMS %>% select_if(~is.numeric(.))
+
+
+# Scale the features
+preprocess_params_cocoa_MMS <- preProcess(train_cocoa_MMS, method = c("center", "scale"))
+cocoa_train_scaled_MMS <- predict(preprocess_params_cocoa_MMS, train_cocoa_MMS)
+cocoa_test_scaled_MMS <- predict(preprocess_params_cocoa_MMS, test_cocoa_MMS)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+cocoa_lasso_MMS <- cv.glmnet(as.matrix(cocoa_train_scaled_MMS), cocoa_train_scaled_MMS$Mon.t_1_Manager_Shorts.t, alpha = 1)
+
+# Make predictions and evaluate the model
+cocoa_lasso_pred_MMS <- predict(cocoa_lasso_MMS, as.matrix(cocoa_test_scaled_MMS), s = "lambda.min")
+mse_MMS <- mean((cocoa_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - cocoa_lasso_pred_MMS)^2)
+r2_MMS <- cor(cocoa_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, as.vector(cocoa_lasso_pred_MMS))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_MMS, r2 = r2_MMS)
+
+
+
+```
+
+## Longs
+
+### AIC
+```{r}
+
+predictors_cocoa_MML <- c(predictors_cocoa, "Cocoa.t")
+
+#train data
+train_cocoa_MML <- train_cocoa %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cocoa_MML)))
+train_cocoa_MML <- train_cocoa_MML %>% select_if(~is.numeric(.))
+
+#test data
+test_cocoa_MML <- test_cocoa %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cocoa_MML)))
+test_cocoa_MML <- test_cocoa_MML %>% select_if(~is.numeric(.))
+
+
+# Linear model
+cocoa_lm_MML_aic <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cocoa_MML)
+
+# Stepwise model selection based on AIC
+stepwise_cocoa_MML <- step(cocoa_lm_MML_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cocoa_pred_MML_aic <- predict(stepwise_cocoa_MML, test_cocoa_MML)
+mse_cocoa_MML_aic <- mean((test_cocoa_MML$Mon.t_1_Manager_Shorts.t - cocoa_pred_MML_aic)^2)
+r2_cocoa_MML_aic <- summary(stepwise_cocoa_MML)$r.squared
+aic_cocoa_MML_aic <- AIC(stepwise_cocoa_MML)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa_MML_aic))
+print(paste("R-squared:", r2_cocoa_MML_aic))
+print(paste("AIC:", aic_cocoa_MML_aic))
+
+
+
+```
+
+### RFE
+```{r}
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+cocoa_rfe_var_MML <- rfe(train_cocoa_MML[, -which(names(train_cocoa_MML) == "Mon.t_1_Manager_Longs.t")], 
+               train_cocoa_MML$Mon.t_1_Manager_Longs.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(cocoa_rfe_var_MML)
+
+cocoa_MML_rfe = c("Mon.t_1_Manager_Longs.t_1", "Producer_Shorts.t_1", "Non_Reportable_Longs.t_1", "Cocoa.t_1", "Mon.t_1_Manager_Shorts.t")
+
+
+train_cocoa_MML_rfe <- train_cocoa_MML %>% select(all_of(c("Mon.t_1_Manager_Longs.t", "Cocoa.t", cocoa_MML_rfe)))
+test_cocoa_MML_rfe <- test_cocoa_MML %>% select(all_of(c("Mon.t_1_Manager_Longs.t", "Cocoa.t", cocoa_MML_rfe)))
+
+# Linear model
+cocoa_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cocoa_MML_rfe)
+
+
+# Predict and evaluate the stepwise model
+cocoa_pred_MML_rfe <- predict(cocoa_lm_MML_rfe, test_cocoa_MML_rfe)
+mse_cocoa_MML_rfe <- mean((test_cocoa_MML_rfe$Mon.t_1_Manager_Longs.t - cocoa_pred_MML_rfe)^2)
+r2_cocoa_MML_rfe <- summary(cocoa_lm_MML_rfe)$r.squared
+aic_cocoa_MML_rfe <- AIC(cocoa_lm_MML_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa_MML_rfe))
+print(paste("R-squared:", r2_cocoa_MML_rfe))
+print(paste("AIC:", aic_cocoa_MML_rfe))
+```
+
+
+### LASSO
+```{r cocoa Money Managers Shorts LASSO Regression}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+# Adapting data to model and ensuring all predictor columns are numeric
+
+predictors_cocoa_MML <- c(predictors_cocoa, "Cocoa.t")
+
+#train data
+train_cocoa_MML <- train_cocoa %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cocoa_MML)))
+train_cocoa_MML <- train_cocoa_MML %>% select_if(~is.numeric(.))
+
+#test data
+test_cocoa_MML <- test_cocoa %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cocoa_MML)))
+test_cocoa_MML <- test_cocoa_MML %>% select_if(~is.numeric(.))
+
+
+# Scale the features
+preprocess_params_cocoa_MML <- preProcess(train_cocoa_MML, method = c("center", "scale"))
+cocoa_train_scaled_MML <- predict(preprocess_params_cocoa_MML, train_cocoa_MML)
+cocoa_test_scaled_MML <- predict(preprocess_params_cocoa_MML, test_cocoa_MML)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+cocoa_lasso_MML <- cv.glmnet(as.matrix(cocoa_train_scaled_MML), cocoa_train_scaled_MML$Mon.t_1_Manager_Longs.t, alpha = 1)
+
+# Make predictions and evaluate the model
+cocoa_lasso_pred_MML <- predict(cocoa_lasso_MML, as.matrix(cocoa_test_scaled_MML), s = "lambda.min")
+mse_MML <- mean((cocoa_test_scaled_MML$Mon.t_1_Manager_Longs.t - cocoa_lasso_pred_MML)^2)
+r2_MML <- cor(cocoa_test_scaled_MML$Mon.t_1_Manager_Longs.t, as.vector(cocoa_lasso_pred_MML))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_MML, r2 = r2_MML)
+
+```

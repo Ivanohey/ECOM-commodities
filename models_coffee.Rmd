@@ -1,0 +1,379 @@
+---
+title: "models_2"
+author: "Niccolò Cherubini"
+date: "2024-01-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# COFFEE
+
+for each commo: open interest coffee \~ delta price coffee t + delta price coffee t_1 + open interest t_1 + other variables t_1
+
+```{r}
+#Data splitting for coffee
+library(tidyverse)
+library(caret)
+library(randomForest)
+
+
+# Splitting the dataset in 0.7 train - 0.3 test
+set.seed(42) # for reproducibility
+
+train_indices_coffee <- sample(1:nrow(coffee_price_cot), size = 0.7 * nrow(coffee_price_cot))
+train_coffee <- coffee_price_cot[train_indices_coffee, ]
+test_coffee <- coffee_price_cot[-train_indices_coffee, ]
+
+# Selecting predictor variables
+predictors_coffee <- names(coffee_price_cot)[grepl(".t_1", names(coffee_price_cot))]
+predictors_coffee <- setdiff(predictors_coffee, c("Sugar.t_1", "Cocoa.t_1", "Cotton.t_1", "Sugar.t", "Cocoa.t", "Cotton.t"))
+
+
+```
+
+## AIC
+
+```{r coffee LM AIC open interest}
+#coffee LM
+
+predictors_coffee_oi <- c(predictors_coffee, "Coffee.t")
+
+#train data
+train_coffee_oi <- train_coffee %>% select(all_of(c("Open_Interest.t", predictors_coffee_oi)))
+train_coffee_oi <- train_coffee_oi %>% select_if(~is.numeric(.))
+
+#test data
+test_coffee_oi <- test_coffee %>% select(all_of(c("Open_Interest.t", predictors_coffee_oi)))
+test_coffee_oi <- test_coffee_oi %>% select_if(~is.numeric(.))
+
+
+# Linear model
+coffee_lm_oi_aic <- lm(Open_Interest.t ~ ., data = train_coffee_oi)
+
+# Stepwise model selection based on AIC
+stepwise_coffee_oi <- step(coffee_lm_oi_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+coffee_pred_oi_aic <- predict(stepwise_coffee_oi, test_coffee_oi)
+mse_coffee_oi_aic <- mean((test_coffee_oi$Open_Interest.t - coffee_pred_oi_aic)^2)
+r2_coffee_oi_aic <- summary(stepwise_coffee_oi)$r.squared
+aic_coffee_oi_aic <- AIC(stepwise_coffee_oi)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee_oi_aic))
+print(paste("R-squared:", r2_coffee_oi_aic))
+print(paste("AIC:", aic_coffee_oi_aic))
+
+#R-squared: 0.973180108288965
+#AIC: 13281.2918272419
+
+```
+
+## RFE
+
+```{r coffee LM RFE open interest}
+
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+coffee_rfe_var_oi <- rfe(train_coffee_oi[, -which(names(train_coffee_oi) == "Open_Interest.t")], 
+               train_coffee_oi$Open_Interest.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(coffee_rfe_var_oi)
+
+coffee_oi_rfe = c("Total_Reportable_Shorts.t_1", "Open_Interest.t_1", "Total_Reportable_Longs.t_1", "Mon.t_1_Manager_Spreads.t", "Mon.t_1_Manager_Spreads.t_1")
+
+
+train_coffee_oi_rfe <- train_coffee_oi %>% select(all_of(c("Open_Interest.t", "Coffee.t", coffee_oi_rfe)))
+test_coffee_oi_rfe <- test_coffee_oi %>% select(all_of(c("Open_Interest.t", "Coffee.t", coffee_oi_rfe)))
+
+# Linear model
+coffee_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_coffee_oi_rfe)
+
+
+# Predict and evaluate the stepwise model
+coffee_pred_oi_rfe <- predict(coffee_lm_oi_rfe, test_coffee_oi_rfe)
+mse_coffee_oi_rfe <- mean((test_coffee_oi_rfe$Open_Interest.t - coffee_pred_oi_rfe)^2)
+r2_coffee_oi_rfe <- summary(coffee_lm_oi_rfe)$r.squared
+aic_coffee_oi_rfe <- AIC(coffee_lm_oi_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee_oi_rfe))
+print(paste("R-squared:", r2_coffee_oi_rfe))
+print(paste("AIC:", aic_coffee_oi_rfe))
+
+#R-squared: 0.971484189620582
+#AIC: 14517.2534706176
+
+```
+
+## LASSO
+
+```{r coffee Open Interest LASSO Regression}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+
+# Scale the features
+preprocess_params_coffee_oi <- preProcess(train_coffee_oi, method = c("center", "scale"))
+coffee_train_scaled_oi <- predict(preprocess_params_coffee_oi, train_coffee_oi)
+coffee_test_scaled_oi <- predict(preprocess_params_coffee_oi, test_coffee_oi)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+coffee_lasso_oi <- cv.glmnet(as.matrix(coffee_train_scaled_oi), coffee_train_scaled_oi$Mon.t_1_Manager_Shorts.t, alpha = 1)
+
+# Make predictions and evaluate the model
+coffee_lasso_pred_oi <- predict(coffee_lasso_oi, as.matrix(coffee_test_scaled_oi), s = "lambda.min")
+mse_lasso_oi <- mean((coffee_test_scaled_oi$Mon.t_1_Manager_Shorts.t - coffee_lasso_pred_oi)^2)
+r2_lasso_oi <- cor(coffee_test_scaled_oi$Mon.t_1_Manager_Shorts.t, as.vector(coffee_lasso_pred_oi))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_lasso_oi, r2 = r2_lasso_oi)
+
+```
+
+# MONEY MANAGERS
+
+## SHORTS
+
+### AIC
+
+```{r}
+
+predictors_coffee_MMS <- c(predictors_coffee, "Coffee.t")
+
+#train data
+train_coffee_MMS <- train_coffee %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_coffee_MMS)))
+train_coffee_MMS <- train_coffee_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_coffee_MMS <- test_coffee %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_coffee_MMS)))
+test_coffee_MMS <- test_coffee_MMS %>% select_if(~is.numeric(.))
+
+
+# Linear model
+coffee_lm_MMS_aic <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_coffee_MMS)
+
+# Stepwise model selection based on AIC
+stepwise_coffee_MMS <- step(coffee_lm_MMS_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+coffee_pred_MMS_aic <- predict(stepwise_coffee_MMS, test_coffee_MMS)
+mse_coffee_MMS_aic <- mean((test_coffee_MMS$Mon.t_1_Manager_Shorts.t - coffee_pred_MMS_aic)^2)
+r2_coffee_MMS_aic <- summary(stepwise_coffee_MMS)$r.squared
+aic_coffee_MMS_aic <- AIC(stepwise_coffee_MMS)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee_MMS_aic))
+print(paste("R-squared:", r2_coffee_MMS_aic))
+print(paste("AIC:", aic_coffee_MMS_aic))
+
+
+
+```
+
+### RFE
+
+```{r}
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+coffee_rfe_var_MMS <- rfe(train_coffee_MMS[, -which(names(train_coffee_MMS) == "Mon.t_1_Manager_Shorts.t")], 
+               train_coffee_MMS$Mon.t_1_Manager_Shorts.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(coffee_rfe_var_MMS)
+
+coffee_MMS_rfe = c("Mon.t_1_Manager_Shorts.t_1", "Non_Reportable_Longs.t_1", "Swap_Dealer_Longs.t_1", "Producer_Shorts.t_1", "Mon.t_1_Manager_Longs.t")
+
+
+train_coffee_MMS_rfe <- train_coffee_MMS %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", "Coffee.t", coffee_MMS_rfe)))
+test_coffee_MMS_rfe <- test_coffee_MMS %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", "Coffee.t", coffee_MMS_rfe)))
+
+# Linear model
+coffee_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_coffee_MMS_rfe)
+
+
+# Predict and evaluate the stepwise model
+coffee_pred_MMS_rfe <- predict(coffee_lm_MMS_rfe, test_coffee_MMS_rfe)
+mse_coffee_MMS_rfe <- mean((test_coffee_MMS_rfe$Open_Interest.t - coffee_pred_MMS_rfe)^2)
+r2_coffee_MMS_rfe <- summary(coffee_lm_MMS_rfe)$r.squared
+aic_coffee_MMS_rfe <- AIC(coffee_lm_MMS_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee_MMS_rfe))
+print(paste("R-squared:", r2_coffee_MMS_rfe))
+print(paste("AIC:", aic_coffee_MMS_rfe))
+```
+
+### LASSO
+
+```{r coffee Money Managers Shorts LASSO Regression}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+# Adapting data to model and ensuring all predictor columns are numeric
+# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+predictors_coffee_MMS <- c(predictors_coffee, "Coffee.t")
+
+#train data
+train_coffee_MMS <- train_coffee %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_coffee_MMS)))
+train_coffee_MMS <- train_coffee_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_coffee_MMS <- test_coffee %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_coffee_MMS)))
+test_coffee_MMS <- test_coffee_MMS %>% select_if(~is.numeric(.))
+
+
+# Scale the features
+preprocess_params_coffee_MMS <- preProcess(train_coffee_MMS, method = c("center", "scale"))
+coffee_train_scaled_MMS <- predict(preprocess_params_coffee_MMS, train_coffee_MMS)
+coffee_test_scaled_MMS <- predict(preprocess_params_coffee_MMS, test_coffee_MMS)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+coffee_lasso_MMS <- cv.glmnet(as.matrix(coffee_train_scaled_MMS), coffee_train_scaled_MMS$Mon.t_1_Manager_Shorts.t, alpha = 1)
+
+# Make predictions and evaluate the model
+coffee_lasso_pred_MMS <- predict(coffee_lasso_MMS, as.matrix(coffee_test_scaled_MMS), s = "lambda.min")
+mse_MMS <- mean((coffee_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - coffee_lasso_pred_MMS)^2)
+r2_MMS <- cor(coffee_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, as.vector(coffee_lasso_pred_MMS))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_MMS, r2 = r2_MMS)
+
+
+
+```
+
+## Longs
+
+### AIC
+```{r}
+
+predictors_coffee_MML <- c(predictors_coffee, "Coffee.t")
+
+#train data
+train_coffee_MML <- train_coffee %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_coffee_MML)))
+train_coffee_MML <- train_coffee_MML %>% select_if(~is.numeric(.))
+
+#test data
+test_coffee_MML <- test_coffee %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_coffee_MML)))
+test_coffee_MML <- test_coffee_MML %>% select_if(~is.numeric(.))
+
+
+# Linear model
+coffee_lm_MML_aic <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_coffee_MML)
+
+# Stepwise model selection based on AIC
+stepwise_coffee_MML <- step(coffee_lm_MML_aic, direction = "backward")
+
+# Predict and evaluate the stepwise model
+coffee_pred_MML_aic <- predict(stepwise_coffee_MML, test_coffee_MML)
+mse_coffee_MML_aic <- mean((test_coffee_MML$Mon.t_1_Manager_Shorts.t - coffee_pred_MML_aic)^2)
+r2_coffee_MML_aic <- summary(stepwise_coffee_MML)$r.squared
+aic_coffee_MML_aic <- AIC(stepwise_coffee_MML)
+
+# MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee_MML_aic))
+print(paste("R-squared:", r2_coffee_MML_aic))
+print(paste("AIC:", aic_coffee_MML_aic))
+
+
+
+```
+
+### RFE
+```{r}
+# Set control parameters for RFE
+control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
+
+# Running RFE with random forest model
+coffee_rfe_var_MML <- rfe(train_coffee_MML[, -which(names(train_coffee_MML) == "Mon.t_1_Manager_Longs.t")], 
+               train_coffee_MML$Mon.t_1_Manager_Longs.t, 
+               sizes = c(1:5),  # Number of features to include
+               rfeControl = control)
+
+# View results
+print(coffee_rfe_var_MML)
+
+coffee_MML_rfe = c("Mon.t_1_Manager_Longs.t_1", "Producer_Shorts.t_1", "Coffee.t_1", "Mon.t_1_Manager_Shorts.t", "Swap_Dealer_Longs.t_1")
+
+
+train_coffee_MML_rfe <- train_coffee_MML %>% select(all_of(c("Mon.t_1_Manager_Longs.t", "Coffee.t", coffee_MML_rfe)))
+test_coffee_MML_rfe <- test_coffee_MML %>% select(all_of(c("Mon.t_1_Manager_Longs.t", "Coffee.t", coffee_MML_rfe)))
+
+# Linear model
+coffee_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_coffee_MML_rfe)
+
+
+# Predict and evaluate the stepwise model
+coffee_pred_MML_rfe <- predict(coffee_lm_MML_rfe, test_coffee_MML_rfe)
+mse_coffee_MML_rfe <- mean((test_coffee_MML_rfe$Mon.t_1_Manager_Longs.t - coffee_pred_MML_rfe)^2)
+r2_coffee_MML_rfe <- summary(coffee_lm_MML_rfe)$r.squared
+aic_coffee_MML_rfe <- AIC(coffee_lm_MML_rfe)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee_MML_rfe))
+print(paste("R-squared:", r2_coffee_MML_rfe))
+print(paste("AIC:", aic_coffee_MML_rfe))
+```
+
+
+### LASSO
+```{r coffee Money Managers Shorts LASSO Regression}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+
+# Adapting data to model and ensuring all predictor columns are numeric
+
+predictors_coffee_MML <- c(predictors_coffee, "Coffee.t")
+
+#train data
+train_coffee_MML <- train_coffee %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_coffee_MML)))
+train_coffee_MML <- train_coffee_MML %>% select_if(~is.numeric(.))
+
+#test data
+test_coffee_MML <- test_coffee %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_coffee_MML)))
+test_coffee_MML <- test_coffee_MML %>% select_if(~is.numeric(.))
+
+
+# Scale the features
+preprocess_params_coffee_MML <- preProcess(train_coffee_MML, method = c("center", "scale"))
+coffee_train_scaled_MML <- predict(preprocess_params_coffee_MML, train_coffee_MML)
+coffee_test_scaled_MML <- predict(preprocess_params_coffee_MML, test_coffee_MML)
+
+# Train the Lasso model
+set.seed(42) # for reproducibility
+coffee_lasso_MML <- cv.glmnet(as.matrix(coffee_train_scaled_MML), coffee_train_scaled_MML$Mon.t_1_Manager_Longs.t, alpha = 1)
+
+# Make predictions and evaluate the model
+coffee_lasso_pred_MML <- predict(coffee_lasso_MML, as.matrix(coffee_test_scaled_MML), s = "lambda.min")
+mse_MML <- mean((coffee_test_scaled_MML$Mon.t_1_Manager_Longs.t - coffee_lasso_pred_MML)^2)
+r2_MML <- cor(coffee_test_scaled_MML$Mon.t_1_Manager_Longs.t, as.vector(coffee_lasso_pred_MML))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_MML, r2 = r2_MML)
+
+```
