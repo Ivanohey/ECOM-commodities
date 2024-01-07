@@ -19,7 +19,7 @@ library(GGally)
 library(DT)
 
 #web scrapping
-library(rvest)
+#library(rvest)
 
 #cleaning 
 library(summarytools)
