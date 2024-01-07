@@ -1,5 +1,5 @@
 ---
-title: "models_2"
+title: "models cotton"
 author: "Niccolò Cherubini"
 date: "2023-12-26"
 output: html_document
@@ -66,6 +66,7 @@ aic_cotton_oi_aic <- AIC(stepwise_cotton_oi)
 print(paste("MSE:", mse_cotton_oi_aic))
 print(paste("R-squared:", r2_cotton_oi_aic))
 print(paste("AIC:", aic_cotton_oi_aic))
+print(summary(stepwise_cotton_oi))
 
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
@@ -106,7 +107,7 @@ aic_cotton_oi_rfe <- AIC(cotton_lm_oi_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_oi_rfe))
 print(paste("R-squared:", r2_cotton_oi_rfe))
-print(paste("AIC:", aic_cotton_oi_rfe))
+print(summary(cotton_lm_oi_rfe))
 
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
@@ -134,8 +135,11 @@ vif_cotton_oi_table <- data.frame(Feature = names(vif_cotton_oi_values), VIF = v
 
 # Display the VIF table, sorted in descending order of VIF
 vif_cotton_oi_table <- vif_cotton_oi_table %>% 
-  arrange(desc(VIF))
+  arrange(desc(VIF)) %>% rename(`Feature Cotton` = Feature ) %>% 
+  rownames_to_column() %>%  
+  select(-rowname)      
 print(vif_cotton_oi_table)
+write_csv(vif_cotton_oi_table, "../ECOM-commodities/data/vif_cotton.csv")
 
 
 # we define the target variable
@@ -143,9 +147,10 @@ target <- "Open_Interest.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_cotton_oi %>% 
-  select(-Open_Interest.t_1,-Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(- Open_Interest.t_1, - Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Shorts.t_1, - `Other Reportable Spreads.t_1`) %>%
   select(-all_of(target)) %>% names()
 
+# -Open_Interest.t_1,-Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1
 
 # Scale the features
 preprocess_params_cotton_oi <- preProcess(train_cotton_oi[, features], method = c("center", "scale"))
@@ -237,7 +242,7 @@ aic_cotton_MMS_aic <- AIC(stepwise_cotton_MMS)
 print(paste("MSE:", mse_cotton_MMS_aic))
 print(paste("R-squared:", r2_cotton_MMS_aic))
 print(paste("AIC:", aic_cotton_MMS_aic))
-
+print(summary(stepwise_cotton_MMS))
 
 
 ```
@@ -275,7 +280,10 @@ aic_cotton_MMS_rfe <- AIC(cotton_lm_MMS_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MMS_rfe))
 print(paste("R-squared:", r2_cotton_MMS_rfe))
-print(paste("AIC:", aic_cotton_MMS_rfe))
+print(summary(cotton_lm_MMS_rfe))
+
+
+
 ```
 
 ### LASSO
@@ -305,10 +313,13 @@ print(vif_cotton_MMS_table)
 # we define the target variable
 target <- "Mon.t_1_Manager_Shorts.t"
 
-# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated
 features <- train_cotton_MMS %>% 
-  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(- Open_Interest.t_1, - Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Shorts.t_1, - `Other Reportable Spreads.t_1`) %>%
   select(-all_of(target)) %>% names()
+
+
+#-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, -Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1
 
 
 # Scale the features
@@ -368,6 +379,8 @@ cotton_lasso_residuals_MMS <- cotton_test_scaled_MMS[[target]] - as.vector(cotto
 plot(cotton_lasso_residuals_MMS, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
 abline(h = 0, col = "red")
 
+# - Open_Interest.t_1, - Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Shorts.t_1, - `Other Reportable Spreads.t_1`	
+
 ```
 
 ## Longs
@@ -402,7 +415,7 @@ aic_cotton_MML_aic <- AIC(stepwise_cotton_MML)
 print(paste("MSE:", mse_cotton_MML_aic))
 print(paste("R-squared:", r2_cotton_MML_aic))
 print(paste("AIC:", aic_cotton_MML_aic))
-
+print(summary(stepwise_cotton_MML))
 
 
 ```
@@ -439,7 +452,7 @@ aic_cotton_MML_rfe <- AIC(cotton_lm_MML_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MML_rfe))
 print(paste("R-squared:", r2_cotton_MML_rfe))
-print(paste("AIC:", aic_cotton_MML_rfe))
+print(summary(cotton_lm_MML_rfe))
 ```
 
 
@@ -471,7 +484,7 @@ target <- "Mon.t_1_Manager_Longs.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_cotton_MML %>% 
-  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(- Open_Interest.t_1, - Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Shorts.t_1, - `Other Reportable Spreads.t_1`) %>%
   select(-all_of(target)) %>% names()
 
 

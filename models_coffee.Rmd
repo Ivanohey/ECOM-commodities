@@ -21,7 +21,7 @@ library(randomForest)
 
 
 # Splitting the dataset in 0.7 train - 0.3 test
-set.seed(42) # for reproducibility
+set.seed(42)
 
 train_indices_coffee <- sample(1:nrow(coffee_price_cot), size = 0.7 * nrow(coffee_price_cot))
 train_coffee <- coffee_price_cot[train_indices_coffee, ]
@@ -66,7 +66,7 @@ aic_coffee_oi_aic <- AIC(stepwise_coffee_oi)
 print(paste("MSE:", mse_coffee_oi_aic))
 print(paste("R-squared:", r2_coffee_oi_aic))
 print(paste("AIC:", aic_coffee_oi_aic))
-
+print(summary(stepwise_coffee_oi))
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
 
@@ -107,7 +107,7 @@ aic_coffee_oi_rfe <- AIC(coffee_lm_oi_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_oi_rfe))
 print(paste("R-squared:", r2_coffee_oi_rfe))
-print(paste("AIC:", aic_coffee_oi_rfe))
+print(summary(coffee_lm_oi_rfe))
 
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
@@ -135,8 +135,12 @@ vif_coffee_oi_table <- data.frame(Feature = names(vif_coffee_oi_values), VIF = v
 
 # Display the VIF table, sorted in descending order of VIF
 vif_coffee_oi_table <- vif_coffee_oi_table %>% 
-  arrange(desc(VIF))
+  arrange(desc(VIF)) %>% rename(`Feature Coffee` = Feature ) %>%
+  rownames_to_column() %>%  
+  select(-rowname)      
 print(vif_coffee_oi_table)
+write_csv(vif_coffee_oi_table, "../ECOM-commodities/data/vif_coffee.csv")
+
 
 
 # we define the target variable
@@ -144,7 +148,7 @@ target <- "Open_Interest.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_coffee_oi %>% 
-  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-Open_Interest.t_1, -Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Longs.t_1, -Producer_Shorts.t_1) %>%
   select(-all_of(target)) %>% names()
 
 
@@ -201,6 +205,7 @@ coffee_lasso_residuals_oi <- coffee_test_scaled_oi[[target]] - as.vector(coffee_
 plot(coffee_lasso_residuals_oi, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
 abline(h = 0, col = "red")
 
+
 ```
 
 # MONEY MANAGERS
@@ -238,7 +243,7 @@ aic_coffee_MMS_aic <- AIC(stepwise_coffee_MMS)
 print(paste("MSE:", mse_coffee_MMS_aic))
 print(paste("R-squared:", r2_coffee_MMS_aic))
 print(paste("AIC:", aic_coffee_MMS_aic))
-
+print(summary(stepwise_coffee_MMS))
 
 
 ```
@@ -277,7 +282,8 @@ aic_coffee_MMS_rfe <- AIC(coffee_lm_MMS_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MMS_rfe))
 print(paste("R-squared:", r2_coffee_MMS_rfe))
-print(paste("AIC:", aic_coffee_MMS_rfe))
+print(summary(coffee_lm_MMS_rfe))
+
 ```
 
 ### LASSO
@@ -309,7 +315,7 @@ target <- "Mon.t_1_Manager_Shorts.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_coffee_MMS %>% 
-  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-Open_Interest.t_1	, -Total_Reportable_Shorts.t_1	, -Total_Reportable_Longs.t_1, - Producer_Longs.t_1		, -Producer_Shorts.t_1, -Mon.t_1_Manager_Shorts.t_1) %>%
   select(-all_of(target)) %>% names()
 
 
@@ -371,6 +377,7 @@ plot(coffee_lasso_residuals_MMS, ylab = "Residuals", xlab = "Predicted Values", 
 abline(h = 0, col = "red")
 
 
+# -Open_Interest.t_1	, -Total_Reportable_Shorts.t_1	, -Total_Reportable_Longs.t_1, - Producer_Longs.t_1		, -Producer_Shorts.t_1, -Mon.t_1_Manager_Shorts.t_1	
 
 ```
 
@@ -406,7 +413,7 @@ aic_coffee_MML_aic <- AIC(stepwise_coffee_MML)
 print(paste("MSE:", mse_coffee_MML_aic))
 print(paste("R-squared:", r2_coffee_MML_aic))
 print(paste("AIC:", aic_coffee_MML_aic))
-
+print(summary(stepwise_coffee_MML))
 
 
 ```
@@ -444,7 +451,8 @@ aic_coffee_MML_rfe <- AIC(coffee_lm_MML_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MML_rfe))
 print(paste("R-squared:", r2_coffee_MML_rfe))
-print(paste("AIC:", aic_coffee_MML_rfe))
+print(summary(coffee_lm_MML_rfe))
+
 ```
 
 
@@ -476,7 +484,7 @@ target <- "Mon.t_1_Manager_Longs.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_coffee_MML %>% 
-  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-Open_Interest.t_1	, -Total_Reportable_Shorts.t_1	, -Total_Reportable_Longs.t_1, - Producer_Longs.t_1		, -Producer_Shorts.t_1, -Mon.t_1_Manager_Shorts.t_1) %>%
   select(-all_of(target)) %>% names()
 
 
@@ -532,4 +540,7 @@ coffee_lasso_residuals_MML <- coffee_test_scaled_MML[[target]] - as.vector(coffe
 # Plot Residuals
 plot(coffee_lasso_residuals_MML, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
 abline(h = 0, col = "red")
+
+
+
 ```

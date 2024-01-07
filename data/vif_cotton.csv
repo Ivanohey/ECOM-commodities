@@ -1,0 +1,23 @@
+Feature Cotton,VIF
+Open_Interest.t_1,24523970273.512405
+Total_Reportable_Shorts.t_1,20291994234.093597
+Total_Reportable_Longs.t_1,18053973942.997944
+Producer_Shorts.t_1,4346594355.712343
+`Other Reportable Spreads.t_1`,1650879928.983291
+Mon.t_1_Manager_Longs.t_1,859316111.2248235
+Producer_Longs.t_1,822299745.1326015
+Mon.t_1_Manager_Shorts.t_1,514474678.08160806
+Swap_Dealer_Longs.t_1,427695900.6073124
+Mon.t_1_Manager_Spreads.t_1,198655192.92193335
+Other_Reportable_Longs.t_1,115249674.42714308
+Non_Reportable_Longs.t_1,114366596.63967706
+Swap_Dealer_Spreads.t_1,85594484.25800982
+Swap_Dealer_Shorts.t_1,68489404.06872503
+Non_Reportable_Shorts.t_1,45272143.121953145
+Other_Reportable_Shorts.t_1,41157148.8699943
+Mon.t_1_Manager_Longs.t,30.965009781770988
+Mon.t_1_Manager_Shorts.t,26.82808552896531
+Mon.t_1_Manager_Spreads.t,8.794307444332203
+Cotton.t_1,1.279340573120579
+Oil.t_1,1.098332995027717
+Cotton.t,1.0635450805184392

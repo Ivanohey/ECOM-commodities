@@ -116,12 +116,25 @@ print(paste("AIC:", aic_sugar_oi_rfe))
 ## LASSO
 
 ```{r SUGAR Open Interest LASSO Regression}
-
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
+
+
+# Calculate VIF
+vif_sugar_oi <- lm(Open_Interest.t ~ ., data = train_sugar_oi)
+
+# Calculate VIF
+vif_sugar_oi_values <- vif(vif_sugar_oi)
+vif_sugar_oi_table <- data.frame(Feature = names(vif_sugar_oi_values), VIF = vif_sugar_oi_values)
+
+# Display the VIF table, sorted in descending order of VIF
+vif_sugar_oi_table <- vif_sugar_oi_table %>% 
+  arrange(desc(VIF))
+print(vif_sugar_oi_table)
 
 
 # we define the target variable
@@ -142,19 +155,24 @@ sugar_test_scaled_oi <- predict(preprocess_params_sugar_oi, test_sugar_oi)
 set.seed(100) # for reproducibility
 sugar_lasso_oi <- cv.glmnet(as.matrix(sugar_train_scaled_oi[, features]), sugar_train_scaled_oi[[target]], alpha = 1)
 
-best_lambda <- sugar_lasso_oi$lambda.min
+best_lambda <- sugar_lasso_oi$lambda.1se
 
 # Make predictions and evaluate the model
 sugar_lasso_pred_oi <- predict(sugar_lasso_oi, as.matrix(sugar_test_scaled_oi[, features]), s = "lambda.1se")
 mse_lasso_oi <- mean((sugar_test_scaled_oi[[target]] - sugar_lasso_pred_oi)^2)
 r2_lasso_oi <- cor(sugar_test_scaled_oi[[target]], as.vector(sugar_lasso_pred_oi))^2
 
+#adjusted R-Squared
+n_sugar_lasso_oi <- nrow(sugar_train_scaled_oi) # number of observations
+p_sugar_lasso_oi <- sum(lasso_coef_df$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_lasso_oi <- 1 - ( (1 - adj_r2_lasso_oi) * (n_sugar_lasso_oi - 1) ) / (n_sugar_lasso_oi - p_sugar_lasso_oi - 1)
+
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_lasso_oi, r2 = r2_lasso_oi, Lambda = best_lambda)
+list(mse = mse_lasso_oi, r2 = r2_lasso_oi, adj_r2_lasso_oi, Lambda = best_lambda)
 
 
 # Extract coefficients at the best lambda value
-lasso_coef <- coef(sugar_lasso_oi, s = "lambda.min")
+lasso_coef <- coef(sugar_lasso_oi, s = "lambda.1se")
 
 # Convert the sparse matrix to a regular matrix, and then to a data frame
 lasso_coef_df <- as.data.frame(as.matrix(lasso_coef))
@@ -173,18 +191,20 @@ print(selected_features)
 
 plot(sugar_lasso_oi)
 
+# Calculate residuals
+residuals <- sugar_test_scaled_oi[[target]] - as.vector(sugar_lasso_pred_oi)
+
+# Plot Residuals
+plot(residuals, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
+
+
 
 ```
 
 
 
-# Make predictions and evaluate the model
-predictions <- predict(cv_model, as.matrix(test_data_scaled[, features]), s = "lambda.min")
-mse <- mean((test_data_scaled[[target]] - predictions)^2)
-r2 <- cor(test_data_scaled[[target]], predictions)^2
 
-# Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse, r2 = r2, best_lambda = cv_model$lambda.min)
 
 # MONEY MANAGERS
 

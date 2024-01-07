@@ -1,7 +1,7 @@
 ---
-title: "models_2"
+title: "sugar models"
 author: "Niccolò Cherubini"
-date: "2024-01-03"
+date: "2023-12-27"
 output: html_document
 ---
 
@@ -66,7 +66,7 @@ aic_sugar_oi_aic <- AIC(stepwise_sugar_oi)
 print(paste("MSE:", mse_sugar_oi_aic))
 print(paste("R-squared:", r2_sugar_oi_aic))
 print(paste("AIC:", aic_sugar_oi_aic))
-
+print(summary(stepwise_sugar_oi))
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
 
@@ -106,7 +106,7 @@ aic_sugar_oi_rfe <- AIC(sugar_lm_oi_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_oi_rfe))
 print(paste("R-squared:", r2_sugar_oi_rfe))
-print(paste("AIC:", aic_sugar_oi_rfe))
+print(summary(sugar_lm_oi_rfe))
 
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
@@ -133,8 +133,12 @@ vif_sugar_oi_table <- data.frame(Feature = names(vif_sugar_oi_values), VIF = vif
 
 # Display the VIF table, sorted in descending order of VIF
 vif_sugar_oi_table <- vif_sugar_oi_table %>% 
-  arrange(desc(VIF))
+  arrange(desc(VIF)) %>% rename(`Feature Sugar` = Feature ) %>% 
+  rownames_to_column() %>%  
+  select(-rowname)      
 print(vif_sugar_oi_table)
+write_csv(vif_sugar_oi_table, "../ECOM-commodities/data/vif_sugar.csv")
+
 
 
 # we define the target variable
@@ -179,7 +183,7 @@ adj_r2_sugar_lasso_oi <- 1 - ( (1 - r2_sugar_lasso_oi) * (n_sugar_lasso_oi - 1) 
 
 # Output the MSE, R-squared, and best lambda (alpha)
 list(mse = mse_sugar_lasso_oi, r2 = r2_sugar_lasso_oi, adjusted_r2 = adj_r2_sugar_lasso_oi, Lambda = best_lambda)
-
+print(summary(sugar_lasso_oi))
 
 # Filter out the intercept and the non-zero coefficients
 sugar_lasso_selected_features_oi <- sugar_lasso_coef_df_oi[sugar_lasso_coef_df_oi$feature != "(Intercept)" & sugar_lasso_coef_df_oi$V1 != 0, ]
@@ -238,7 +242,7 @@ aic_sugar_MMS_aic <- AIC(stepwise_sugar_MMS)
 print(paste("MSE:", mse_sugar_MMS_aic))
 print(paste("R-squared:", r2_sugar_MMS_aic))
 print(paste("AIC:", aic_sugar_MMS_aic))
-
+print(summary(stepwise_sugar_MMS))
 
 
 ```
@@ -277,7 +281,9 @@ aic_sugar_MMS_rfe <- AIC(sugar_lm_MMS_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_MMS_rfe))
 print(paste("R-squared:", r2_sugar_MMS_rfe))
-print(paste("AIC:", aic_sugar_MMS_rfe))
+print(summary(sugar_lm_MMS_rfe))
+
+
 ```
 
 ### LASSO
@@ -409,7 +415,7 @@ aic_sugar_MML_aic <- AIC(stepwise_sugar_MML)
 print(paste("MSE:", mse_sugar_MML_aic))
 print(paste("R-squared:", r2_sugar_MML_aic))
 print(paste("AIC:", aic_sugar_MML_aic))
-
+print(summary(stepwise_sugar_MML))
 
 
 ```
@@ -446,7 +452,8 @@ aic_sugar_MML_rfe <- AIC(sugar_lm_MML_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_MML_rfe))
 print(paste("R-squared:", r2_sugar_MML_rfe))
-print(paste("AIC:", aic_sugar_MML_rfe))
+print(summary(sugar_lm_MML_rfe))
+
 ```
 
 

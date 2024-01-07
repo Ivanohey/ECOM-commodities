@@ -66,6 +66,7 @@ aic_cocoa_oi_aic <- AIC(stepwise_cocoa_oi)
 print(paste("MSE:", mse_cocoa_oi_aic))
 print(paste("R-squared:", r2_cocoa_oi_aic))
 print(paste("AIC:", aic_cocoa_oi_aic))
+print(summary(stepwise_cocoa_oi))
 
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
@@ -106,7 +107,7 @@ aic_cocoa_oi_rfe <- AIC(cocoa_lm_oi_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_oi_rfe))
 print(paste("R-squared:", r2_cocoa_oi_rfe))
-print(paste("AIC:", aic_cocoa_oi_rfe))
+print(summary(cocoa_lm_oi_rfe))
 
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
@@ -134,8 +135,11 @@ vif_cocoa_oi_table <- data.frame(Feature = names(vif_cocoa_oi_values), VIF = vif
 
 # Display the VIF table, sorted in descending order of VIF
 vif_cocoa_oi_table <- vif_cocoa_oi_table %>% 
-  arrange(desc(VIF))
+  arrange(desc(VIF)) %>% rename(`Feature Cocoa` = Feature ) %>%
+  rownames_to_column() %>%  
+  select(-rowname)      
 print(vif_cocoa_oi_table)
+write_csv(vif_cocoa_oi_table, "../ECOM-commodities/data/vif_cocoa.csv")
 
 
 # we define the target variable
@@ -200,6 +204,8 @@ cocoa_lasso_residuals_oi <- cocoa_test_scaled_oi[[target]] - as.vector(cocoa_las
 plot(cocoa_lasso_residuals_oi, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
 abline(h = 0, col = "red")
 
+# -Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1
+
 ```
 
 # MONEY MANAGERS
@@ -237,7 +243,7 @@ aic_cocoa_MMS_aic <- AIC(stepwise_cocoa_MMS)
 print(paste("MSE:", mse_cocoa_MMS_aic))
 print(paste("R-squared:", r2_cocoa_MMS_aic))
 print(paste("AIC:", aic_cocoa_MMS_aic))
-
+print(summary(stepwise_cocoa_MMS))
 
 
 ```
@@ -276,7 +282,8 @@ aic_cocoa_MMS_rfe <- AIC(cocoa_lm_MMS_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_MMS_rfe))
 print(paste("R-squared:", r2_cocoa_MMS_rfe))
-print(paste("AIC:", aic_cocoa_MMS_rfe))
+print(summary(cocoa_lm_MMS_rfe))
+
 ```
 
 ### LASSO
@@ -403,7 +410,7 @@ aic_cocoa_MML_aic <- AIC(stepwise_cocoa_MML)
 print(paste("MSE:", mse_cocoa_MML_aic))
 print(paste("R-squared:", r2_cocoa_MML_aic))
 print(paste("AIC:", aic_cocoa_MML_aic))
-
+print(summary(stepwise_cocoa_MML))
 
 
 ```
@@ -441,7 +448,7 @@ aic_cocoa_MML_rfe <- AIC(cocoa_lm_MML_rfe)
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_MML_rfe))
 print(paste("R-squared:", r2_cocoa_MML_rfe))
-print(paste("AIC:", aic_cocoa_MML_rfe))
+print(summary(cocoa_lm_MML_rfe))
 ```
 
 
