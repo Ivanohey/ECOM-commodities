@@ -116,25 +116,12 @@ print(paste("AIC:", aic_sugar_oi_rfe))
 ## LASSO
 
 ```{r SUGAR Open Interest LASSO Regression}
-library(car)
+
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
-
-
-# Calculate VIF
-vif_sugar_oi <- lm(Open_Interest.t ~ ., data = train_sugar_oi)
-
-# Calculate VIF
-vif_sugar_oi_values <- vif(vif_sugar_oi)
-vif_sugar_oi_table <- data.frame(Feature = names(vif_sugar_oi_values), VIF = vif_sugar_oi_values)
-
-# Display the VIF table, sorted in descending order of VIF
-vif_sugar_oi_table <- vif_sugar_oi_table %>% 
-  arrange(desc(VIF))
-print(vif_sugar_oi_table)
 
 
 # we define the target variable
@@ -155,53 +142,49 @@ sugar_test_scaled_oi <- predict(preprocess_params_sugar_oi, test_sugar_oi)
 set.seed(100) # for reproducibility
 sugar_lasso_oi <- cv.glmnet(as.matrix(sugar_train_scaled_oi[, features]), sugar_train_scaled_oi[[target]], alpha = 1)
 
-best_lambda <- sugar_lasso_oi$lambda.1se
+best_lambda <- sugar_lasso_oi$lambda.min
 
 # Make predictions and evaluate the model
 sugar_lasso_pred_oi <- predict(sugar_lasso_oi, as.matrix(sugar_test_scaled_oi[, features]), s = "lambda.1se")
-mse_sugar_lasso_oi <- mean((sugar_test_scaled_oi[[target]] - sugar_lasso_pred_oi)^2)
-r2_sugar_lasso_oi <- cor(sugar_test_scaled_oi[[target]], as.vector(sugar_lasso_pred_oi))^2
+mse_lasso_oi <- mean((sugar_test_scaled_oi[[target]] - sugar_lasso_pred_oi)^2)
+r2_lasso_oi <- cor(sugar_test_scaled_oi[[target]], as.vector(sugar_lasso_pred_oi))^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse_lasso_oi, r2 = r2_lasso_oi, Lambda = best_lambda)
 
 
 # Extract coefficients at the best lambda value
-sugar_lasso_coef_oi <- coef(sugar_lasso_oi, s = "lambda.1se")
+lasso_coef <- coef(sugar_lasso_oi, s = "lambda.min")
 
 # Convert the sparse matrix to a regular matrix, and then to a data frame
-sugar_lasso_coef_df_oi <- as.data.frame(as.matrix(sugar_lasso_coef_oi))
+lasso_coef_df <- as.data.frame(as.matrix(lasso_coef))
 
 # Add row names as a new column to the data frame
-sugar_lasso_coef_df_oi$feature <- rownames(sugar_lasso_coef_df_oi)
-
-#adjusted R-Squared
-n_sugar_lasso_oi <- nrow(sugar_train_scaled_oi) # number of observations
-p_sugar_lasso_oi <- sum(sugar_lasso_coef_df_oi$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
-adj_r2_sugar_lasso_oi <- 1 - ( (1 - r2_sugar_lasso_oi) * (n_sugar_lasso_oi - 1) ) / (n_sugar_lasso_oi - p_sugar_lasso_oi - 1)
-
-# Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_sugar_lasso_oi, r2 = r2_sugar_lasso_oi, adjusted_r2 = adj_r2_sugar_lasso_oi, Lambda = best_lambda)
-
+lasso_coef_df$feature <- rownames(lasso_coef_df)
 
 # Filter out the intercept and the non-zero coefficients
-sugar_lasso_selected_features_oi <- sugar_lasso_coef_df_oi[sugar_lasso_coef_df_oi$feature != "(Intercept)" & sugar_lasso_coef_df_oi$V1 != 0, ]
+selected_features <- lasso_coef_df[lasso_coef_df$feature != "(Intercept)" & lasso_coef_df$V1 != 0, ]
 
 # Rename columns for clarity
-names(sugar_lasso_selected_features_oi) <- c("Coefficient", "Feature")
+names(selected_features) <- c("Coefficient", "Feature")
 
 # Print the selected features and their coefficients
-print(sugar_lasso_selected_features_oi)
+print(selected_features)
 
 plot(sugar_lasso_oi)
 
-# Calculate residuals
-sugar_lasso_residuals_oi <- sugar_test_scaled_oi[[target]] - as.vector(sugar_lasso_pred_oi)
-
-# Plot Residuals
-plot(sugar_lasso_residuals_oi, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
-abline(h = 0, col = "red")
-
-
 
 ```
+
+
+
+# Make predictions and evaluate the model
+predictions <- predict(cv_model, as.matrix(test_data_scaled[, features]), s = "lambda.min")
+mse <- mean((test_data_scaled[[target]] - predictions)^2)
+r2 <- cor(test_data_scaled[[target]], predictions)^2
+
+# Output the MSE, R-squared, and best lambda (alpha)
+list(mse = mse, r2 = r2, best_lambda = cv_model$lambda.min)
 
 # MONEY MANAGERS
 
@@ -283,95 +266,41 @@ print(paste("AIC:", aic_sugar_MMS_rfe))
 ### LASSO
 
 ```{r SUGAR Money Managers Shorts LASSO Regression}
-library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
 
+# Adapting data to model and ensuring all predictor columns are numeric
+# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+predictors_sugar_MMS <- c(predictors_sugar, "Sugar.t")
 
-# Calculate VIF
-vif_sugar_MMS <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_sugar_MMS)
+#train data
+train_sugar_MMS <- train_sugar %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_sugar_MMS)))
+train_sugar_MMS <- train_sugar_MMS %>% select_if(~is.numeric(.))
 
-# Calculate VIF
-vif_sugar_MMS_values <- vif(vif_sugar_MMS)
-vif_sugar_MMS_table <- data.frame(Feature = names(vif_sugar_MMS_values), VIF = vif_sugar_MMS_values)
-
-# Display the VIF table, sorted in descending order of VIF
-vif_sugar_MMS_table <- vif_sugar_MMS_table %>% 
-  arrange(desc(VIF))
-print(vif_sugar_MMS_table)
-
-
-# we define the target variable
-target <- "Mon.t_1_Manager_Shorts.t"
-
-# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
-features <- train_sugar_MMS %>% 
-  select(-Open_Interest.t_1,-Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
-  select(-all_of(target)) %>% names()
+#test data
+test_sugar_MMS <- test_sugar %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_sugar_MMS)))
+test_sugar_MMS <- test_sugar_MMS %>% select_if(~is.numeric(.))
 
 
 # Scale the features
-preprocess_params_sugar_MMS <- preProcess(train_sugar_MMS[, features], method = c("center", "scale"))
+preprocess_params_sugar_MMS <- preProcess(train_sugar_MMS, method = c("center", "scale"))
 sugar_train_scaled_MMS <- predict(preprocess_params_sugar_MMS, train_sugar_MMS)
 sugar_test_scaled_MMS <- predict(preprocess_params_sugar_MMS, test_sugar_MMS)
 
 # Train the Lasso model
-set.seed(100) # for reproducibility
-sugar_lasso_MMS <- cv.glmnet(as.matrix(sugar_train_scaled_MMS[, features]), sugar_train_scaled_MMS[[target]], alpha = 1)
-
-best_lambda <- sugar_lasso_MMS$lambda.1se
+set.seed(42) # for reproducibility
+sugar_lasso_MMS <- cv.glmnet(as.matrix(sugar_train_scaled_MMS), sugar_train_scaled_MMS$Mon.t_1_Manager_Shorts.t, alpha = 1)
 
 # Make predictions and evaluate the model
-sugar_lasso_pred_MMS <- predict(sugar_lasso_MMS, as.matrix(sugar_test_scaled_MMS[, features]), s = "lambda.1se")
-mse_sugar_lasso_MMS <- mean((sugar_test_scaled_MMS[[target]] - sugar_lasso_pred_MMS)^2)
-r2_sugar_lasso_MMS <- cor(sugar_test_scaled_MMS[[target]], as.vector(sugar_lasso_pred_MMS))^2
-
-
-
-
-# Extract coefficients at the best lambda value
-sugar_lasso_coef_MMS <- coef(sugar_lasso_MMS, s = "lambda.1se")
-
-# Convert the sparse matrix to a regular matrix, and then to a data frame
-sugar_lasso_coef_df_MMS <- as.data.frame(as.matrix(sugar_lasso_coef_MMS))
-
-# Add row names as a new column to the data frame
-sugar_lasso_coef_df_MMS$feature <- rownames(sugar_lasso_coef_df_MMS)
-
-#adjusted R-Squared
-n_sugar_lasso_MMS <- nrow(sugar_train_scaled_MMS) # number of observations
-p_sugar_lasso_MMS <- sum(sugar_lasso_coef_df_MMS$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
-adj_r2_sugar_lasso_MMS <- 1 - ( (1 - r2_sugar_lasso_MMS) * (n_sugar_lasso_MMS - 1) ) / (n_sugar_lasso_MMS - p_sugar_lasso_MMS - 1)
+sugar_lasso_pred_MMS <- predict(sugar_lasso_MMS, as.matrix(sugar_test_scaled_MMS), s = "lambda.min")
+mse_MMS <- mean((sugar_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - sugar_lasso_pred_MMS)^2)
+r2_MMS <- cor(sugar_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, as.vector(sugar_lasso_pred_MMS))^2
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_sugar_lasso_MMS, r2 = r2_sugar_lasso_MMS, adjusted_r2 = adj_r2_sugar_lasso_MMS, Lambda = best_lambda)
-
-
-
-
-# Filter out the intercept and the non-zero coefficients
-sugar_lasso_selected_features_MMS <- sugar_lasso_coef_df_MMS[sugar_lasso_coef_df_MMS$feature != "(Intercept)" & sugar_lasso_coef_df_MMS$V1 != 0, ]
-
-# Rename columns for clarity
-names(sugar_lasso_selected_features_MMS) <- c("Coefficient", "Feature")
-
-# Print the selected features and their coefficients
-print(sugar_lasso_selected_features_MMS)
-
-plot(sugar_lasso_MMS)
-
-# Calculate residuals
-sugar_lasso_residuals_MMS <- sugar_test_scaled_MMS[[target]] - as.vector(sugar_lasso_pred_MMS)
-
-# Plot Residuals
-plot(sugar_lasso_residuals_MMS, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
-abline(h = 0, col = "red")
-
-
-
+list(mse = mse_MMS, r2 = r2_MMS)
 
 
 
@@ -452,88 +381,264 @@ print(paste("AIC:", aic_sugar_MML_rfe))
 
 ### LASSO
 ```{r SUGAR Money Managers Shorts LASSO Regression}
-library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
 
+# Adapting data to model and ensuring all predictor columns are numeric
+# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+predictors_sugar_MML <- c(predictors_sugar, "Sugar.t")
 
-# Calculate VIF
-vif_sugar_MML <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_sugar_MML)
+#train data
+train_sugar_MML <- train_sugar %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_sugar_MML)))
+train_sugar_MML <- train_sugar_MML %>% select_if(~is.numeric(.))
 
-# Calculate VIF
-vif_sugar_MML_values <- vif(vif_sugar_MML)
-vif_sugar_MML_table <- data.frame(Feature = names(vif_sugar_MML_values), VIF = vif_sugar_MML_values)
-
-# Display the VIF table, sorted in descending order of VIF
-vif_sugar_MML_table <- vif_sugar_MML_table %>% 
-  arrange(desc(VIF))
-print(vif_sugar_MML_table)
-
-
-# we define the target variable
-target <- "Mon.t_1_Manager_Longs.t"
-
-# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
-features <- train_sugar_MML %>% 
-  select(- Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
-  select(-all_of(target)) %>% names()
+#test data
+test_sugar_MML <- test_sugar %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_sugar_MML)))
+test_sugar_MML <- test_sugar_MML %>% select_if(~is.numeric(.))
 
 
 # Scale the features
-preprocess_params_sugar_MML <- preProcess(train_sugar_MML[, features], method = c("center", "scale"))
+preprocess_params_sugar_MML <- preProcess(train_sugar_MML, method = c("center", "scale"))
 sugar_train_scaled_MML <- predict(preprocess_params_sugar_MML, train_sugar_MML)
 sugar_test_scaled_MML <- predict(preprocess_params_sugar_MML, test_sugar_MML)
 
 # Train the Lasso model
-set.seed(100) # for reproducibility
-sugar_lasso_MML <- cv.glmnet(as.matrix(sugar_train_scaled_MML[, features]), sugar_train_scaled_MML[[target]], alpha = 1)
-
-best_lambda <- sugar_lasso_MML$lambda.1se
+set.seed(42) # for reproducibility
+sugar_lasso_MML <- cv.glmnet(as.matrix(sugar_train_scaled_MML), sugar_train_scaled_MML$Mon.t_1_Manager_Longs.t, alpha = 1)
 
 # Make predictions and evaluate the model
-sugar_lasso_pred_MML <- predict(sugar_lasso_MML, as.matrix(sugar_test_scaled_MML[, features]), s = "lambda.1se")
-mse_sugar_lasso_MML <- mean((sugar_test_scaled_MML[[target]] - sugar_lasso_pred_MML)^2)
-r2_sugar_lasso_MML <- cor(sugar_test_scaled_MML[[target]], as.vector(sugar_lasso_pred_MML))^2
-
-
-# Extract coefficients at the best lambda value
-sugar_lasso_coef_MML <- coef(sugar_lasso_MML, s = "lambda.1se")
-
-# Convert the sparse matrix to a regular matrix, and then to a data frame
-sugar_lasso_coef_df_MML <- as.data.frame(as.matrix(sugar_lasso_coef_MML))
-
-# Add row names as a new column to the data frame
-sugar_lasso_coef_df_MML$feature <- rownames(sugar_lasso_coef_df_MML)
-
-#adjusted R-Squared
-n_sugar_lasso_MML <- nrow(sugar_train_scaled_MML) # number of observations
-p_sugar_lasso_MML <- sum(sugar_lasso_coef_df_MML$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
-adj_r2_sugar_lasso_MML <- 1 - ( (1 - r2_sugar_lasso_MML) * (n_sugar_lasso_MML - 1) ) / (n_sugar_lasso_MML - p_sugar_lasso_MML - 1)
+sugar_lasso_pred_MML <- predict(sugar_lasso_MML, as.matrix(sugar_test_scaled_MML), s = "lambda.min")
+mse_MML <- mean((sugar_test_scaled_MML$Mon.t_1_Manager_Longs.t - sugar_lasso_pred_MML)^2)
+r2_MML <- cor(sugar_test_scaled_MML$Mon.t_1_Manager_Longs.t, as.vector(sugar_lasso_pred_MML))^2
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_sugar_lasso_MML, r2 = r2_sugar_lasso_MML, adjusted_r2 = adj_r2_sugar_lasso_MML, Lambda = best_lambda)
+list(mse = mse_MML, r2 = r2_MML)
+
+```
 
 
-# Filter out the intercept and the non-zero coefficients
-sugar_lasso_selected_features_MML <- sugar_lasso_coef_df_MML[sugar_lasso_coef_df_MML$feature != "(Intercept)" & sugar_lasso_coef_df_MML$V1 != 0, ]
 
-# Rename columns for clarity
-names(sugar_lasso_selected_features_MML) <- c("Coefficient", "Feature")
 
-# Print the selected features and their coefficients
-print(sugar_lasso_selected_features_MML)
 
-plot(sugar_lasso_MML)
 
-# Calculate residuals
-sugar_lasso_residuals_MML <- sugar_test_scaled_MML[[target]] - as.vector(sugar_lasso_pred_MML)
+### OLD STUFF
 
-# Plot Residuals
-plot(sugar_lasso_residuals_MML, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
-abline(h = 0, col = "red")
+```{r SUGAR Money Managers Shorts Polynomial Regression}
+
+# Adapting data to model and ensuring all predictor columns are numeric
+v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
+predictors_sugar_MMS <- c(v, "Sugar.t")
+
+#train data
+train_sugar_MMS <- train_sugar %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_sugar_MMS)))
+train_sugar_MMS <- train_sugar_MMS %>% select_if(~is.numeric(.))
+
+#test data
+test_sugar_MMS <- test_sugar %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_sugar_MMS)))
+test_sugar_MMS <- test_sugar_MMS %>% select_if(~is.numeric(.))
+
+
+# Degree of the polynomial we need to fit
+degree <- 2 # Adjust this as needed
+
+sugar_poly_MMS <- lm(Mon.t_1_Manager_Shorts.t ~ poly(train_sugar_MMS, degree, raw=TRUE), 
+                     data = train_sugar_MMS)
+
+# If predictors_sugar_MMS has only one predictor, it will work as above
+# If there are multiple, you need to create interaction terms manually or fit multiple models
+
+# Summary of the model to see coefficients and statistical significance
+summary(sugar_poly_MMS)
+
+# Optional: Make predictions with the model
+sugar_poly_pred_MMS <- predict(sugar_poly_MMS, test_sugar_MMS)
+
+# Plot the polynomial curve on the training set
+ggplot(train_sugar_MMS, aes(x = predictors_sugar_MMS, y = Mon.t_1_Manager_Longs.t)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ poly(x, degree, raw=TRUE), color = 'blue') +
+  labs(title = 'Polynomial Regression Model on Training Set', x = 'Predictor', y = 'Mon.t_1_Manager_Shorts.t')
+
+# Optionally, you can plot the predictions against the actual values for the test set
+ggplot(test_sugar_MMS, aes(x = predictors_sugar_MMS, y = Mon.t_1_Manager_Shorts.t)) +
+  geom_point() +
+  geom_line(aes(y = sugar_poly_pred_MMS), color = 'red') +
+  labs(title = 'Polynomial Regression Predictions on Test Set', x = 'Predictor', y = 'Response and Predictions')
+
+
+
+```
+
+
+
+#COTTON
+
+```{r Cotton LM}
+#Cotton lm
+cotton_data <- cotton_price_cot
+
+# Selecting predictor variables
+predictor_columns_cotton <- names(cotton_data)[grepl(".t_1", names(cotton_data))]
+predictor_columns_cotton <- setdiff(predictor_columns_cotton, c("Sugar.t_1", "Cocoa.t_1", "Coffee.t_1", "Sugar.t", "Cocoa.t", "Coffee.t"))
+predictor_columns_cotton <- c(predictor_columns_cotton, "Cotton.t", "Cotton.t_1", "Open_Interest.t_1")
+
+# Ensure all predictor columns are numeric
+cotton_data <- cotton_data %>% select(all_of(c("Open_Interest.t", predictor_columns_cotton)))
+cotton_data <- cotton_data %>% select_if(~is.numeric(.))
+
+# Splitting the dataset in 0.7 train - 0.3 test
+set.seed(42) # for reproducibility
+train_indices <- sample(1:nrow(cotton_data), size = 0.7 * nrow(cotton_data))
+train_data <- cotton_data[train_indices, ]
+test_data <- cotton_data[-train_indices, ]
+
+# Linear model
+cotton_model <- lm(Open_Interest.t ~ ., data = train_data)
+
+# Stepwise model selection based on AIC
+stepwise_cotton <- step(cotton_model, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cotton_predict <- predict(stepwise_cotton, test_data)
+mse_cotton <- mean((test_data$Open_Interest.t - cotton_predict)^2)
+r2_cotton <- summary(stepwise_cotton)$r.squared
+aic_cotton <- AIC(stepwise_cotton)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cotton))
+print(paste("R-squared:", r2_cotton))
+print(paste("AIC:", aic_cotton))
+
+#R-squared: 0.973180108288965
+#AIC: 13281.2918272419
+
+
+```
+
+```{r Coffee LM}
+#Coffee lm
+coffee_data <- coffee_price_cot
+
+# Selecting predictor variables
+predictor_columns_coffee <- names(coffee_data)[grepl(".t_1", names(coffee_data))]
+predictor_columns_coffee <- setdiff(predictor_columns_coffee, c("Sugar.t_1", "Cocoa.t_1", "Cotton.t_1", "Sugar.t", "Cocoa.t", "Cotton.t"))
+predictor_columns_coffee <- c(predictor_columns_coffee, "Coffee.t", "Coffee.t_1", "Open_Interest.t_1")
+
+# Ensure all predictor columns are numeric
+coffee_data <- coffee_data %>% select(all_of(c("Open_Interest.t", predictor_columns_coffee)))
+coffee_data <- coffee_data %>% select_if(~is.numeric(.))
+
+# Splitting the dataset in 0.7 train - 0.3 test
+set.seed(42) # for reproducibility
+train_indices <- sample(1:nrow(coffee_data), size = 0.7 * nrow(coffee_data))
+train_data <- coffee_data[train_indices, ]
+test_data <- coffee_data[-train_indices, ]
+
+# Linear model
+coffee_model <- lm(Open_Interest.t ~ ., data = train_data)
+
+# Stepwise model selection based on AIC
+stepwise_coffee <- step(coffee_model, direction = "backward")
+
+# Predict and evaluate the stepwise model
+coffee_predict <- predict(stepwise_coffee, test_data)
+mse_coffee <- mean((test_data$Open_Interest.t - coffee_predict)^2)
+r2_coffee <- summary(stepwise_coffee)$r.squared
+aic_coffee <- AIC(stepwise_coffee)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_coffee))
+print(paste("R-squared:", r2_coffee))
+print(paste("AIC:", aic_coffee))
+
+# R-squared: 0.987956413120843
+# AIC: 12885.2839667785
+
+```
+
+```{r COCOA LM}
+#Cocoa lm
+
+cocoa_data <- cocoa_price_cot
+
+# Selecting predictor variables
+predictor_columns_cocoa <- names(cocoa_data)[grepl(".t_1", names(cocoa_data))]
+predictor_columns_cocoa <- setdiff(predictor_columns_cocoa, c("Sugar.t_1", "Cotton.t_1", "Coffee.t_1", "Sugar.t", "Cotton.t", "Coffee.t"))
+predictor_columns_cocoa <- c(predictor_columns_cocoa, "Cocoa.t", "Cocoa.t_1", "Open_Interest.t_1")
+
+# Ensure all predictor columns are numeric
+cocoa_data <- cocoa_data %>% select(all_of(c("Open_Interest.t", predictor_columns_cocoa)))
+cocoa_data <- cocoa_data %>% select_if(~is.numeric(.))
+
+# Splitting the dataset in 0.7 train - 0.3 test
+set.seed(42) # for reproducibility
+train_indices <- sample(1:nrow(cocoa_data), size = 0.7 * nrow(cocoa_data))
+train_data <- cocoa_data[train_indices, ]
+test_data <- cocoa_data[-train_indices, ]
+
+# Linear model
+cocoa_model <- lm(Open_Interest.t ~ ., data = train_data)
+
+# Stepwise model selection based on AIC
+stepwise_cocoa <- step(cocoa_model, direction = "backward")
+
+# Predict and evaluate the stepwise model
+cocoa_predict <- predict(stepwise_cocoa, test_data)
+mse_cocoa <- mean((test_data$Open_Interest.t - cocoa_predict)^2)
+r2_cocoa <- summary(stepwise_cocoa)$r.squared
+aic_cocoa <- AIC(stepwise_cocoa)
+
+# Print the MSE, R-squared, and AIC
+print(paste("MSE:", mse_cocoa))
+print(paste("R-squared:", r2_cocoa))
+print(paste("AIC:", aic_cocoa))
+
+# R-squared: 0.991989382910009
+# AIC: 12812.9068477375
+```
+
+```{r SUGAR LM PCA}
+
+```
+
+```{r Cotton LM PCA}
+
+```
+
+```{r Coffee LM PCA}
+
+```
+
+```{r COCOA LM PCA}
+
+```
+
+#MANAGED MONEY
+
+```{r SUGAR LM Managed_money}
+# we use a polynomial regression
+
+
+```
+
+```{r Cotton LM Managed_money}
+# we use a polynomial regression
+
+
+
+```
+
+```{r Coffee LM Managed_money}
+# we use a logistic regression
+
+
+```
+
+```{r COCOA LM Managed_money}
+# we use a logistic regression
 
 
 ```

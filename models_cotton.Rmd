@@ -1,7 +1,7 @@
 ---
 title: "models_2"
 author: "Niccolò Cherubini"
-date: "2024-01-03"
+date: "2023-12-26"
 output: html_document
 ---
 
@@ -117,6 +117,7 @@ print(paste("AIC:", aic_cotton_oi_rfe))
 
 ```{r cotton Open Interest LASSO Regression}
 
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
@@ -124,22 +125,80 @@ library(caret)
 library(glmnet)
 
 
+# Calculate VIF
+vif_cotton_oi <- lm(Open_Interest.t ~ ., data = train_cotton_oi)
+
+# Calculate VIF
+vif_cotton_oi_values <- vif(vif_cotton_oi)
+vif_cotton_oi_table <- data.frame(Feature = names(vif_cotton_oi_values), VIF = vif_cotton_oi_values)
+
+# Display the VIF table, sorted in descending order of VIF
+vif_cotton_oi_table <- vif_cotton_oi_table %>% 
+  arrange(desc(VIF))
+print(vif_cotton_oi_table)
+
+
+# we define the target variable
+target <- "Open_Interest.t"
+
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+features <- train_cotton_oi %>% 
+  select(-Open_Interest.t_1,-Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-all_of(target)) %>% names()
+
+
 # Scale the features
-preprocess_params_cotton_oi <- preProcess(train_cotton_oi, method = c("center", "scale"))
+preprocess_params_cotton_oi <- preProcess(train_cotton_oi[, features], method = c("center", "scale"))
 cotton_train_scaled_oi <- predict(preprocess_params_cotton_oi, train_cotton_oi)
 cotton_test_scaled_oi <- predict(preprocess_params_cotton_oi, test_cotton_oi)
 
 # Train the Lasso model
-set.seed(42) # for reproducibility
-cotton_lasso_oi <- cv.glmnet(as.matrix(cotton_train_scaled_oi), cotton_train_scaled_oi$Mon.t_1_Manager_Shorts.t, alpha = 1)
+set.seed(100) # for reproducibility
+cotton_lasso_oi <- cv.glmnet(as.matrix(cotton_train_scaled_oi[, features]), cotton_train_scaled_oi[[target]], alpha = 1)
+
+best_lambda <- cotton_lasso_oi$lambda.1se
 
 # Make predictions and evaluate the model
-cotton_lasso_pred_oi <- predict(cotton_lasso_oi, as.matrix(cotton_test_scaled_oi), s = "lambda.min")
-mse_lasso_oi <- mean((cotton_test_scaled_oi$Mon.t_1_Manager_Shorts.t - cotton_lasso_pred_oi)^2)
-r2_lasso_oi <- cor(cotton_test_scaled_oi$Mon.t_1_Manager_Shorts.t, as.vector(cotton_lasso_pred_oi))^2
+cotton_lasso_pred_oi <- predict(cotton_lasso_oi, as.matrix(cotton_test_scaled_oi[, features]), s = "lambda.1se")
+mse_cotton_lasso_oi <- mean((cotton_test_scaled_oi[[target]] - cotton_lasso_pred_oi)^2)
+r2_cotton_lasso_oi <- cor(cotton_test_scaled_oi[[target]], as.vector(cotton_lasso_pred_oi))^2
+
+
+# Extract coefficients at the best lambda value
+cotton_lasso_coef_oi <- coef(cotton_lasso_oi, s = "lambda.1se")
+
+# Convert the sparse matrix to a regular matrix, and then to a data frame
+cotton_lasso_coef_df_oi <- as.data.frame(as.matrix(cotton_lasso_coef_oi))
+
+# Add row names as a new column to the data frame
+cotton_lasso_coef_df_oi$feature <- rownames(cotton_lasso_coef_df_oi)
+
+#adjusted R-Squared
+n_cotton_lasso_oi <- nrow(cotton_train_scaled_oi) # number of observations
+p_cotton_lasso_oi <- sum(cotton_lasso_coef_df_oi$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_cotton_lasso_oi <- 1 - ( (1 - r2_cotton_lasso_oi) * (n_cotton_lasso_oi - 1) ) / (n_cotton_lasso_oi - p_cotton_lasso_oi - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_lasso_oi, r2 = r2_lasso_oi)
+list(mse = mse_cotton_lasso_oi, r2 = r2_cotton_lasso_oi, adjusted_r2 = adj_r2_cotton_lasso_oi, Lambda = best_lambda)
+
+
+# Filter out the intercept and the non-zero coefficients
+cotton_lasso_selected_features_oi <- cotton_lasso_coef_df_oi[cotton_lasso_coef_df_oi$feature != "(Intercept)" & cotton_lasso_coef_df_oi$V1 != 0, ]
+
+# Rename columns for clarity
+names(cotton_lasso_selected_features_oi) <- c("Coefficient", "Feature")
+
+# Print the selected features and their coefficients
+print(cotton_lasso_selected_features_oi)
+
+plot(cotton_lasso_oi)
+
+# Calculate residuals
+cotton_lasso_residuals_oi <- cotton_test_scaled_oi[[target]] - as.vector(cotton_lasso_pred_oi)
+
+# Plot Residuals
+plot(cotton_lasso_residuals_oi, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
 
 ```
 
@@ -222,43 +281,92 @@ print(paste("AIC:", aic_cotton_MMS_rfe))
 ### LASSO
 
 ```{r cotton Money Managers Shorts LASSO Regression}
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
 
-# Adapting data to model and ensuring all predictor columns are numeric
-# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
-predictors_cotton_MMS <- c(predictors_cotton, "Cotton.t")
 
-#train data
-train_cotton_MMS <- train_cotton %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cotton_MMS)))
-train_cotton_MMS <- train_cotton_MMS %>% select_if(~is.numeric(.))
+# Calculate VIF
+vif_cotton_MMS <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cotton_MMS)
 
-#test data
-test_cotton_MMS <- test_cotton %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_cotton_MMS)))
-test_cotton_MMS <- test_cotton_MMS %>% select_if(~is.numeric(.))
+# Calculate VIF
+vif_cotton_MMS_values <- vif(vif_cotton_MMS)
+vif_cotton_MMS_table <- data.frame(Feature = names(vif_cotton_MMS_values), VIF = vif_cotton_MMS_values)
+
+# Display the VIF table, sorted in descending order of VIF
+vif_cotton_MMS_table <- vif_cotton_MMS_table %>% 
+  arrange(desc(VIF))
+print(vif_cotton_MMS_table)
+
+
+# we define the target variable
+target <- "Mon.t_1_Manager_Shorts.t"
+
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+features <- train_cotton_MMS %>% 
+  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-all_of(target)) %>% names()
 
 
 # Scale the features
-preprocess_params_cotton_MMS <- preProcess(train_cotton_MMS, method = c("center", "scale"))
+preprocess_params_cotton_MMS <- preProcess(train_cotton_MMS[, features], method = c("center", "scale"))
 cotton_train_scaled_MMS <- predict(preprocess_params_cotton_MMS, train_cotton_MMS)
 cotton_test_scaled_MMS <- predict(preprocess_params_cotton_MMS, test_cotton_MMS)
 
 # Train the Lasso model
-set.seed(42) # for reproducibility
-cotton_lasso_MMS <- cv.glmnet(as.matrix(cotton_train_scaled_MMS), cotton_train_scaled_MMS$Mon.t_1_Manager_Shorts.t, alpha = 1)
+set.seed(100) # for reproducibility
+cotton_lasso_MMS <- cv.glmnet(as.matrix(cotton_train_scaled_MMS[, features]), cotton_train_scaled_MMS[[target]], alpha = 1)
+
+best_lambda <- cotton_lasso_MMS$lambda.1se
 
 # Make predictions and evaluate the model
-cotton_lasso_pred_MMS <- predict(cotton_lasso_MMS, as.matrix(cotton_test_scaled_MMS), s = "lambda.min")
-mse_MMS <- mean((cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - cotton_lasso_pred_MMS)^2)
-r2_MMS <- cor(cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, as.vector(cotton_lasso_pred_MMS))^2
+cotton_lasso_pred_MMS <- predict(cotton_lasso_MMS, as.matrix(cotton_test_scaled_MMS[, features]), s = "lambda.1se")
+mse_cotton_lasso_MMS <- mean((cotton_test_scaled_MMS[[target]] - cotton_lasso_pred_MMS)^2)
+r2_cotton_lasso_MMS <- cor(cotton_test_scaled_MMS[[target]], as.vector(cotton_lasso_pred_MMS))^2
+
+
+
+
+# Extract coefficients at the best lambda value
+cotton_lasso_coef_MMS <- coef(cotton_lasso_MMS, s = "lambda.1se")
+
+# Convert the sparse matrix to a regular matrix, and then to a data frame
+cotton_lasso_coef_df_MMS <- as.data.frame(as.matrix(cotton_lasso_coef_MMS))
+
+# Add row names as a new column to the data frame
+cotton_lasso_coef_df_MMS$feature <- rownames(cotton_lasso_coef_df_MMS)
+
+#adjusted R-Squared
+n_cotton_lasso_MMS <- nrow(cotton_train_scaled_MMS) # number of observations
+p_cotton_lasso_MMS <- sum(cotton_lasso_coef_df_MMS$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_cotton_lasso_MMS <- 1 - ( (1 - r2_cotton_lasso_MMS) * (n_cotton_lasso_MMS - 1) ) / (n_cotton_lasso_MMS - p_cotton_lasso_MMS - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_MMS, r2 = r2_MMS)
+list(mse = mse_cotton_lasso_MMS, r2 = r2_cotton_lasso_MMS, adjusted_r2 = adj_r2_cotton_lasso_MMS, Lambda = best_lambda)
 
 
+
+
+# Filter out the intercept and the non-zero coefficients
+cotton_lasso_selected_features_MMS <- cotton_lasso_coef_df_MMS[cotton_lasso_coef_df_MMS$feature != "(Intercept)" & cotton_lasso_coef_df_MMS$V1 != 0, ]
+
+# Rename columns for clarity
+names(cotton_lasso_selected_features_MMS) <- c("Coefficient", "Feature")
+
+# Print the selected features and their coefficients
+print(cotton_lasso_selected_features_MMS)
+
+plot(cotton_lasso_MMS)
+
+# Calculate residuals
+cotton_lasso_residuals_MMS <- cotton_test_scaled_MMS[[target]] - as.vector(cotton_lasso_pred_MMS)
+
+# Plot Residuals
+plot(cotton_lasso_residuals_MMS, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
 
 ```
 
@@ -337,40 +445,87 @@ print(paste("AIC:", aic_cotton_MML_rfe))
 
 ### LASSO
 ```{r cotton Money Managers Shorts LASSO Regression}
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
 
-# Adapting data to model and ensuring all predictor columns are numeric
 
-predictors_cotton_MML <- c(predictors_cotton, "Cotton.t")
+# Calculate VIF
+vif_cotton_MML <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cotton_MML)
 
-#train data
-train_cotton_MML <- train_cotton %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cotton_MML)))
-train_cotton_MML <- train_cotton_MML %>% select_if(~is.numeric(.))
+# Calculate VIF
+vif_cotton_MML_values <- vif(vif_cotton_MML)
+vif_cotton_MML_table <- data.frame(Feature = names(vif_cotton_MML_values), VIF = vif_cotton_MML_values)
 
-#test data
-test_cotton_MML <- test_cotton %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_cotton_MML)))
-test_cotton_MML <- test_cotton_MML %>% select_if(~is.numeric(.))
+# Display the VIF table, sorted in descending order of VIF
+vif_cotton_MML_table <- vif_cotton_MML_table %>% 
+  arrange(desc(VIF))
+print(vif_cotton_MML_table)
+
+
+# we define the target variable
+target <- "Mon.t_1_Manager_Longs.t"
+
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+features <- train_cotton_MML %>% 
+  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-all_of(target)) %>% names()
 
 
 # Scale the features
-preprocess_params_cotton_MML <- preProcess(train_cotton_MML, method = c("center", "scale"))
+preprocess_params_cotton_MML <- preProcess(train_cotton_MML[, features], method = c("center", "scale"))
 cotton_train_scaled_MML <- predict(preprocess_params_cotton_MML, train_cotton_MML)
 cotton_test_scaled_MML <- predict(preprocess_params_cotton_MML, test_cotton_MML)
 
 # Train the Lasso model
-set.seed(42) # for reproducibility
-cotton_lasso_MML <- cv.glmnet(as.matrix(cotton_train_scaled_MML), cotton_train_scaled_MML$Mon.t_1_Manager_Longs.t, alpha = 1)
+set.seed(100) # for reproducibility
+cotton_lasso_MML <- cv.glmnet(as.matrix(cotton_train_scaled_MML[, features]), cotton_train_scaled_MML[[target]], alpha = 1)
+
+best_lambda <- cotton_lasso_MML$lambda.1se
 
 # Make predictions and evaluate the model
-cotton_lasso_pred_MML <- predict(cotton_lasso_MML, as.matrix(cotton_test_scaled_MML), s = "lambda.min")
-mse_MML <- mean((cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t - cotton_lasso_pred_MML)^2)
-r2_MML <- cor(cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t, as.vector(cotton_lasso_pred_MML))^2
+cotton_lasso_pred_MML <- predict(cotton_lasso_MML, as.matrix(cotton_test_scaled_MML[, features]), s = "lambda.1se")
+mse_cotton_lasso_MML <- mean((cotton_test_scaled_MML[[target]] - cotton_lasso_pred_MML)^2)
+r2_cotton_lasso_MML <- cor(cotton_test_scaled_MML[[target]], as.vector(cotton_lasso_pred_MML))^2
+
+
+# Extract coefficients at the best lambda value
+cotton_lasso_coef_MML <- coef(cotton_lasso_MML, s = "lambda.1se")
+
+# Convert the sparse matrix to a regular matrix, and then to a data frame
+cotton_lasso_coef_df_MML <- as.data.frame(as.matrix(cotton_lasso_coef_MML))
+
+# Add row names as a new column to the data frame
+cotton_lasso_coef_df_MML$feature <- rownames(cotton_lasso_coef_df_MML)
+
+#adjusted R-Squared
+n_cotton_lasso_MML <- nrow(cotton_train_scaled_MML) # number of observations
+p_cotton_lasso_MML <- sum(cotton_lasso_coef_df_MML$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_cotton_lasso_MML <- 1 - ( (1 - r2_cotton_lasso_MML) * (n_cotton_lasso_MML - 1) ) / (n_cotton_lasso_MML - p_cotton_lasso_MML - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_MML, r2 = r2_MML)
+list(mse = mse_cotton_lasso_MML, r2 = r2_cotton_lasso_MML, adjusted_r2 = adj_r2_cotton_lasso_MML, Lambda = best_lambda)
+
+
+# Filter out the intercept and the non-zero coefficients
+cotton_lasso_selected_features_MML <- cotton_lasso_coef_df_MML[cotton_lasso_coef_df_MML$feature != "(Intercept)" & cotton_lasso_coef_df_MML$V1 != 0, ]
+
+# Rename columns for clarity
+names(cotton_lasso_selected_features_MML) <- c("Coefficient", "Feature")
+
+# Print the selected features and their coefficients
+print(cotton_lasso_selected_features_MML)
+
+plot(cotton_lasso_MML)
+
+# Calculate residuals
+cotton_lasso_residuals_MML <- cotton_test_scaled_MML[[target]] - as.vector(cotton_lasso_pred_MML)
+
+# Plot Residuals
+plot(cotton_lasso_residuals_MML, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
 
 ```

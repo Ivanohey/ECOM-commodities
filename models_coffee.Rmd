@@ -118,6 +118,7 @@ print(paste("AIC:", aic_coffee_oi_rfe))
 
 ```{r coffee Open Interest LASSO Regression}
 
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
@@ -125,22 +126,80 @@ library(caret)
 library(glmnet)
 
 
+# Calculate VIF
+vif_coffee_oi <- lm(Open_Interest.t ~ ., data = train_coffee_oi)
+
+# Calculate VIF
+vif_coffee_oi_values <- vif(vif_coffee_oi)
+vif_coffee_oi_table <- data.frame(Feature = names(vif_coffee_oi_values), VIF = vif_coffee_oi_values)
+
+# Display the VIF table, sorted in descending order of VIF
+vif_coffee_oi_table <- vif_coffee_oi_table %>% 
+  arrange(desc(VIF))
+print(vif_coffee_oi_table)
+
+
+# we define the target variable
+target <- "Open_Interest.t"
+
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+features <- train_coffee_oi %>% 
+  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-all_of(target)) %>% names()
+
+
 # Scale the features
-preprocess_params_coffee_oi <- preProcess(train_coffee_oi, method = c("center", "scale"))
+preprocess_params_coffee_oi <- preProcess(train_coffee_oi[, features], method = c("center", "scale"))
 coffee_train_scaled_oi <- predict(preprocess_params_coffee_oi, train_coffee_oi)
 coffee_test_scaled_oi <- predict(preprocess_params_coffee_oi, test_coffee_oi)
 
 # Train the Lasso model
-set.seed(42) # for reproducibility
-coffee_lasso_oi <- cv.glmnet(as.matrix(coffee_train_scaled_oi), coffee_train_scaled_oi$Mon.t_1_Manager_Shorts.t, alpha = 1)
+set.seed(100) # for reproducibility
+coffee_lasso_oi <- cv.glmnet(as.matrix(coffee_train_scaled_oi[, features]), coffee_train_scaled_oi[[target]], alpha = 1)
+
+best_lambda <- coffee_lasso_oi$lambda.1se
 
 # Make predictions and evaluate the model
-coffee_lasso_pred_oi <- predict(coffee_lasso_oi, as.matrix(coffee_test_scaled_oi), s = "lambda.min")
-mse_lasso_oi <- mean((coffee_test_scaled_oi$Mon.t_1_Manager_Shorts.t - coffee_lasso_pred_oi)^2)
-r2_lasso_oi <- cor(coffee_test_scaled_oi$Mon.t_1_Manager_Shorts.t, as.vector(coffee_lasso_pred_oi))^2
+coffee_lasso_pred_oi <- predict(coffee_lasso_oi, as.matrix(coffee_test_scaled_oi[, features]), s = "lambda.1se")
+mse_coffee_lasso_oi <- mean((coffee_test_scaled_oi[[target]] - coffee_lasso_pred_oi)^2)
+r2_coffee_lasso_oi <- cor(coffee_test_scaled_oi[[target]], as.vector(coffee_lasso_pred_oi))^2
+
+
+# Extract coefficients at the best lambda value
+coffee_lasso_coef_oi <- coef(coffee_lasso_oi, s = "lambda.1se")
+
+# Convert the sparse matrix to a regular matrix, and then to a data frame
+coffee_lasso_coef_df_oi <- as.data.frame(as.matrix(coffee_lasso_coef_oi))
+
+# Add row names as a new column to the data frame
+coffee_lasso_coef_df_oi$feature <- rownames(coffee_lasso_coef_df_oi)
+
+#adjusted R-Squared
+n_coffee_lasso_oi <- nrow(coffee_train_scaled_oi) # number of observations
+p_coffee_lasso_oi <- sum(coffee_lasso_coef_df_oi$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_coffee_lasso_oi <- 1 - ( (1 - r2_coffee_lasso_oi) * (n_coffee_lasso_oi - 1) ) / (n_coffee_lasso_oi - p_coffee_lasso_oi - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_lasso_oi, r2 = r2_lasso_oi)
+list(mse = mse_coffee_lasso_oi, r2 = r2_coffee_lasso_oi, adjusted_r2 = adj_r2_coffee_lasso_oi, Lambda = best_lambda)
+
+
+# Filter out the intercept and the non-zero coefficients
+coffee_lasso_selected_features_oi <- coffee_lasso_coef_df_oi[coffee_lasso_coef_df_oi$feature != "(Intercept)" & coffee_lasso_coef_df_oi$V1 != 0, ]
+
+# Rename columns for clarity
+names(coffee_lasso_selected_features_oi) <- c("Coefficient", "Feature")
+
+# Print the selected features and their coefficients
+print(coffee_lasso_selected_features_oi)
+
+plot(coffee_lasso_oi)
+
+# Calculate residuals
+coffee_lasso_residuals_oi <- coffee_test_scaled_oi[[target]] - as.vector(coffee_lasso_pred_oi)
+
+# Plot Residuals
+plot(coffee_lasso_residuals_oi, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
 
 ```
 
@@ -224,41 +283,92 @@ print(paste("AIC:", aic_coffee_MMS_rfe))
 ### LASSO
 
 ```{r coffee Money Managers Shorts LASSO Regression}
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
 
-# Adapting data to model and ensuring all predictor columns are numeric
-# v = c("Mon.t_1_Manager_Shorts.t_1", "Swap_Dealer_Shorts.t_1", "Swap_Dealer_Longs.t_1", "Non_Reportable_Shorts.t_1", "Other_Reportable_Longs.t_1")
-predictors_coffee_MMS <- c(predictors_coffee, "Coffee.t")
 
-#train data
-train_coffee_MMS <- train_coffee %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_coffee_MMS)))
-train_coffee_MMS <- train_coffee_MMS %>% select_if(~is.numeric(.))
+# Calculate VIF
+vif_coffee_MMS <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_coffee_MMS)
 
-#test data
-test_coffee_MMS <- test_coffee %>% select(all_of(c("Mon.t_1_Manager_Shorts.t", predictors_coffee_MMS)))
-test_coffee_MMS <- test_coffee_MMS %>% select_if(~is.numeric(.))
+# Calculate VIF
+vif_coffee_MMS_values <- vif(vif_coffee_MMS)
+vif_coffee_MMS_table <- data.frame(Feature = names(vif_coffee_MMS_values), VIF = vif_coffee_MMS_values)
+
+# Display the VIF table, sorted in descending order of VIF
+vif_coffee_MMS_table <- vif_coffee_MMS_table %>% 
+  arrange(desc(VIF))
+print(vif_coffee_MMS_table)
+
+
+# we define the target variable
+target <- "Mon.t_1_Manager_Shorts.t"
+
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+features <- train_coffee_MMS %>% 
+  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-all_of(target)) %>% names()
 
 
 # Scale the features
-preprocess_params_coffee_MMS <- preProcess(train_coffee_MMS, method = c("center", "scale"))
+preprocess_params_coffee_MMS <- preProcess(train_coffee_MMS[, features], method = c("center", "scale"))
 coffee_train_scaled_MMS <- predict(preprocess_params_coffee_MMS, train_coffee_MMS)
 coffee_test_scaled_MMS <- predict(preprocess_params_coffee_MMS, test_coffee_MMS)
 
 # Train the Lasso model
-set.seed(42) # for reproducibility
-coffee_lasso_MMS <- cv.glmnet(as.matrix(coffee_train_scaled_MMS), coffee_train_scaled_MMS$Mon.t_1_Manager_Shorts.t, alpha = 1)
+set.seed(100) # for reproducibility
+coffee_lasso_MMS <- cv.glmnet(as.matrix(coffee_train_scaled_MMS[, features]), coffee_train_scaled_MMS[[target]], alpha = 1)
+
+best_lambda <- coffee_lasso_MMS$lambda.1se
 
 # Make predictions and evaluate the model
-coffee_lasso_pred_MMS <- predict(coffee_lasso_MMS, as.matrix(coffee_test_scaled_MMS), s = "lambda.min")
-mse_MMS <- mean((coffee_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - coffee_lasso_pred_MMS)^2)
-r2_MMS <- cor(coffee_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, as.vector(coffee_lasso_pred_MMS))^2
+coffee_lasso_pred_MMS <- predict(coffee_lasso_MMS, as.matrix(coffee_test_scaled_MMS[, features]), s = "lambda.1se")
+mse_coffee_lasso_MMS <- mean((coffee_test_scaled_MMS[[target]] - coffee_lasso_pred_MMS)^2)
+r2_coffee_lasso_MMS <- cor(coffee_test_scaled_MMS[[target]], as.vector(coffee_lasso_pred_MMS))^2
+
+
+
+
+# Extract coefficients at the best lambda value
+coffee_lasso_coef_MMS <- coef(coffee_lasso_MMS, s = "lambda.1se")
+
+# Convert the sparse matrix to a regular matrix, and then to a data frame
+coffee_lasso_coef_df_MMS <- as.data.frame(as.matrix(coffee_lasso_coef_MMS))
+
+# Add row names as a new column to the data frame
+coffee_lasso_coef_df_MMS$feature <- rownames(coffee_lasso_coef_df_MMS)
+
+#adjusted R-Squared
+n_coffee_lasso_MMS <- nrow(coffee_train_scaled_MMS) # number of observations
+p_coffee_lasso_MMS <- sum(coffee_lasso_coef_df_MMS$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_coffee_lasso_MMS <- 1 - ( (1 - r2_coffee_lasso_MMS) * (n_coffee_lasso_MMS - 1) ) / (n_coffee_lasso_MMS - p_coffee_lasso_MMS - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_MMS, r2 = r2_MMS)
+list(mse = mse_coffee_lasso_MMS, r2 = r2_coffee_lasso_MMS, adjusted_r2 = adj_r2_coffee_lasso_MMS, Lambda = best_lambda)
+
+
+
+
+# Filter out the intercept and the non-zero coefficients
+coffee_lasso_selected_features_MMS <- coffee_lasso_coef_df_MMS[coffee_lasso_coef_df_MMS$feature != "(Intercept)" & coffee_lasso_coef_df_MMS$V1 != 0, ]
+
+# Rename columns for clarity
+names(coffee_lasso_selected_features_MMS) <- c("Coefficient", "Feature")
+
+# Print the selected features and their coefficients
+print(coffee_lasso_selected_features_MMS)
+
+plot(coffee_lasso_MMS)
+
+# Calculate residuals
+coffee_lasso_residuals_MMS <- coffee_test_scaled_MMS[[target]] - as.vector(coffee_lasso_pred_MMS)
+
+# Plot Residuals
+plot(coffee_lasso_residuals_MMS, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
 
 
 
@@ -340,40 +450,86 @@ print(paste("AIC:", aic_coffee_MML_rfe))
 
 ### LASSO
 ```{r coffee Money Managers Shorts LASSO Regression}
+library(car)
 library(readr)
 library(dplyr)
 library(tidyr)
 library(caret)
 library(glmnet)
 
-# Adapting data to model and ensuring all predictor columns are numeric
 
-predictors_coffee_MML <- c(predictors_coffee, "Coffee.t")
+# Calculate VIF
+vif_coffee_MML <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_coffee_MML)
 
-#train data
-train_coffee_MML <- train_coffee %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_coffee_MML)))
-train_coffee_MML <- train_coffee_MML %>% select_if(~is.numeric(.))
+# Calculate VIF
+vif_coffee_MML_values <- vif(vif_coffee_MML)
+vif_coffee_MML_table <- data.frame(Feature = names(vif_coffee_MML_values), VIF = vif_coffee_MML_values)
 
-#test data
-test_coffee_MML <- test_coffee %>% select(all_of(c("Mon.t_1_Manager_Longs.t", predictors_coffee_MML)))
-test_coffee_MML <- test_coffee_MML %>% select_if(~is.numeric(.))
+# Display the VIF table, sorted in descending order of VIF
+vif_coffee_MML_table <- vif_coffee_MML_table %>% 
+  arrange(desc(VIF))
+print(vif_coffee_MML_table)
+
+
+# we define the target variable
+target <- "Mon.t_1_Manager_Longs.t"
+
+# we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
+features <- train_coffee_MML %>% 
+  select(-Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+  select(-all_of(target)) %>% names()
 
 
 # Scale the features
-preprocess_params_coffee_MML <- preProcess(train_coffee_MML, method = c("center", "scale"))
+preprocess_params_coffee_MML <- preProcess(train_coffee_MML[, features], method = c("center", "scale"))
 coffee_train_scaled_MML <- predict(preprocess_params_coffee_MML, train_coffee_MML)
 coffee_test_scaled_MML <- predict(preprocess_params_coffee_MML, test_coffee_MML)
 
 # Train the Lasso model
-set.seed(42) # for reproducibility
-coffee_lasso_MML <- cv.glmnet(as.matrix(coffee_train_scaled_MML), coffee_train_scaled_MML$Mon.t_1_Manager_Longs.t, alpha = 1)
+set.seed(100) # for reproducibility
+coffee_lasso_MML <- cv.glmnet(as.matrix(coffee_train_scaled_MML[, features]), coffee_train_scaled_MML[[target]], alpha = 1)
+
+best_lambda <- coffee_lasso_MML$lambda.1se
 
 # Make predictions and evaluate the model
-coffee_lasso_pred_MML <- predict(coffee_lasso_MML, as.matrix(coffee_test_scaled_MML), s = "lambda.min")
-mse_MML <- mean((coffee_test_scaled_MML$Mon.t_1_Manager_Longs.t - coffee_lasso_pred_MML)^2)
-r2_MML <- cor(coffee_test_scaled_MML$Mon.t_1_Manager_Longs.t, as.vector(coffee_lasso_pred_MML))^2
+coffee_lasso_pred_MML <- predict(coffee_lasso_MML, as.matrix(coffee_test_scaled_MML[, features]), s = "lambda.1se")
+mse_coffee_lasso_MML <- mean((coffee_test_scaled_MML[[target]] - coffee_lasso_pred_MML)^2)
+r2_coffee_lasso_MML <- cor(coffee_test_scaled_MML[[target]], as.vector(coffee_lasso_pred_MML))^2
+
+
+# Extract coefficients at the best lambda value
+coffee_lasso_coef_MML <- coef(coffee_lasso_MML, s = "lambda.1se")
+
+# Convert the sparse matrix to a regular matrix, and then to a data frame
+coffee_lasso_coef_df_MML <- as.data.frame(as.matrix(coffee_lasso_coef_MML))
+
+# Add row names as a new column to the data frame
+coffee_lasso_coef_df_MML$feature <- rownames(coffee_lasso_coef_df_MML)
+
+#adjusted R-Squared
+n_coffee_lasso_MML <- nrow(coffee_train_scaled_MML) # number of observations
+p_coffee_lasso_MML <- sum(coffee_lasso_coef_df_MML$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
+adj_r2_coffee_lasso_MML <- 1 - ( (1 - r2_coffee_lasso_MML) * (n_coffee_lasso_MML - 1) ) / (n_coffee_lasso_MML - p_coffee_lasso_MML - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_MML, r2 = r2_MML)
+list(mse = mse_coffee_lasso_MML, r2 = r2_coffee_lasso_MML, adjusted_r2 = adj_r2_coffee_lasso_MML, Lambda = best_lambda)
 
+
+# Filter out the intercept and the non-zero coefficients
+coffee_lasso_selected_features_MML <- coffee_lasso_coef_df_MML[coffee_lasso_coef_df_MML$feature != "(Intercept)" & coffee_lasso_coef_df_MML$V1 != 0, ]
+
+# Rename columns for clarity
+names(coffee_lasso_selected_features_MML) <- c("Coefficient", "Feature")
+
+# Print the selected features and their coefficients
+print(coffee_lasso_selected_features_MML)
+
+plot(coffee_lasso_MML)
+
+# Calculate residuals
+coffee_lasso_residuals_MML <- coffee_test_scaled_MML[[target]] - as.vector(coffee_lasso_pred_MML)
+
+# Plot Residuals
+plot(coffee_lasso_residuals_MML, ylab = "Residuals", xlab = "Predicted Values", main = "Residual Plot")
+abline(h = 0, col = "red")
 ```
