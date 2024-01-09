@@ -47,8 +47,6 @@ for (commodity_name in selected_commodities) {
 The graphs shows a similar trend between Cocoa and Coffee. Also, it shows a similar trend between CrudeOil, Sugar and Cotton. To be sure, we do a bivariate vizualization for Cocoa and Coffee, and a multivariate one for the other commodities. 
 
 ```{r}
-# Assuming commodity_data_list is a list containing data frames for each commodity
-
 # Extract data for Cocoa and Coffee
 cocoa_data <- commodity_data_list$Cocoa
 coffee_data <- commodity_data_list$Coffee
@@ -75,7 +73,6 @@ print(comparison_plot)
 This scatterplot seems to show a common trend between Coffee and Cocoa. 
 
 ```{r}
-# Assuming commodity_data_list is a list containing data frames for each commodity
 
 # Extract data for Cotton, Sugar, and Crude Oil
 cotton_data <- commodity_data_list$Cotton
@@ -339,9 +336,7 @@ for (commodity in commodities) {
 
 To organize groups of data, we do individual factor map. (HELP TO METTRE LES NOMS DES FACTEURS SUR LES POINTS!)
 ```{r}
-# Assuming you have a list named 'pca_results_list' containing PCA results for each commodity
-# and a data frame named 'commodities' with a 'commodity' column
-library(factoextra)
+
 # Create a new list to store individual factor maps
 factor_maps_list <- list()
 
@@ -363,34 +358,6 @@ for (commodity in commodities) {
  factor_maps_list$Cotton
 
 ```
-
-```{r}
-# Create a new list to store k-means clustering results
-# kmeans_results_list <- list()
-# 
-# # Specify the number of clusters (k)
-# num_clusters <- 3  # Adjust as needed
-# 
-# for (commodity in commodities) {
-#   pca_result <- pca_results_list[[commodity]]
-#   
-#   # Extract the variables from the PCA result
-#   variables <- 
-#   
-#   # Perform k-means clustering on the variables
-#   kmeans_result <- kmeans(variables, centers = num_clusters)
-#   
-#   # Add cluster assignments to the original data
-#   commodity_data$Cluster <- as.factor(kmeans_result$cluster)
-#   
-#   # Store the k-means result in the list
-#   kmeans_results_list[[commodity]] <- kmeans_result
-# }
-
-# Display or further process the k-means results as needed
-
-```
-
 
 REFAIRE LA PARTIE SUIVANTE CLUSTERS PB VARIABLES
 
@@ -426,13 +393,7 @@ We want to retain the principal components associated with eigenvalues above the
 FACTOR ANALYSIS TO DO HERE = 1 er SELECTION
 
 **Variable selection**
-t test
-```{r}
-
-
-
-```
-
+t tes
 
 
 ```{r Forcasting using ETS}
@@ -440,14 +401,10 @@ library(tsibble)
 library(fable)
 library(ggplot2)
 
-# Assuming COT_Cotton is your tsibble
-# Assuming you have a column 'Open_Interest' and 'Date'
-
 # Convert 'Date' to Date format
 COT_Cotton$Date <- as.Date(COT_Cotton$Date)
 newdata <- COT_Cotton %>%
   select(Date, `Open_Interest`, `Total_Reportable_Longs` , `Total_Reportable_Shorts` )
-
 
 # Create a tsibble with regular dates starting from January 2006
 regular_tsibble <- tsibble(date = seq(from = as.Date("2006-01-01"), by = "1 week", length.out = nrow(newdata)))
@@ -472,7 +429,6 @@ fc |>
    geom_line(aes(y = .fitted), col = "#D55E00", data= augment(fit)) +
    labs(y = "Open Interest", title = "Forecast: Cotton Open Interest") +
    guides(colour = "none")
-
 
 ```
 
