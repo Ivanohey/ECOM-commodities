@@ -60,12 +60,11 @@ stepwise_coffee_oi <- step(coffee_lm_oi_aic, direction = "backward")
 coffee_pred_oi_aic <- predict(stepwise_coffee_oi, test_coffee_oi)
 mse_coffee_oi_aic <- mean((test_coffee_oi$Open_Interest.t - coffee_pred_oi_aic)^2)
 r2_coffee_oi_aic <- summary(stepwise_coffee_oi)$r.squared
-aic_coffee_oi_aic <- AIC(stepwise_coffee_oi)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_oi_aic))
 print(paste("R-squared:", r2_coffee_oi_aic))
-print(paste("AIC:", aic_coffee_oi_aic))
 print(summary(stepwise_coffee_oi))
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
@@ -102,7 +101,6 @@ coffee_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_coffee_oi_rfe)
 coffee_pred_oi_rfe <- predict(coffee_lm_oi_rfe, test_coffee_oi_rfe)
 mse_coffee_oi_rfe <- mean((test_coffee_oi_rfe$Open_Interest.t - coffee_pred_oi_rfe)^2)
 r2_coffee_oi_rfe <- summary(coffee_lm_oi_rfe)$r.squared
-aic_coffee_oi_rfe <- AIC(coffee_lm_oi_rfe)
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_oi_rfe))
@@ -237,12 +235,11 @@ stepwise_coffee_MMS <- step(coffee_lm_MMS_aic, direction = "backward")
 coffee_pred_MMS_aic <- predict(stepwise_coffee_MMS, test_coffee_MMS)
 mse_coffee_MMS_aic <- mean((test_coffee_MMS$Mon.t_1_Manager_Shorts.t - coffee_pred_MMS_aic)^2)
 r2_coffee_MMS_aic <- summary(stepwise_coffee_MMS)$r.squared
-aic_coffee_MMS_aic <- AIC(stepwise_coffee_MMS)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MMS_aic))
 print(paste("R-squared:", r2_coffee_MMS_aic))
-print(paste("AIC:", aic_coffee_MMS_aic))
 print(summary(stepwise_coffee_MMS))
 
 
@@ -277,7 +274,6 @@ coffee_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_coffee_MMS_rf
 coffee_pred_MMS_rfe <- predict(coffee_lm_MMS_rfe, test_coffee_MMS_rfe)
 mse_coffee_MMS_rfe <- mean((test_coffee_MMS_rfe$Open_Interest.t - coffee_pred_MMS_rfe)^2)
 r2_coffee_MMS_rfe <- summary(coffee_lm_MMS_rfe)$r.squared
-aic_coffee_MMS_rfe <- AIC(coffee_lm_MMS_rfe)
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MMS_rfe))
@@ -407,12 +403,11 @@ stepwise_coffee_MML <- step(coffee_lm_MML_aic, direction = "backward")
 coffee_pred_MML_aic <- predict(stepwise_coffee_MML, test_coffee_MML)
 mse_coffee_MML_aic <- mean((test_coffee_MML$Mon.t_1_Manager_Shorts.t - coffee_pred_MML_aic)^2)
 r2_coffee_MML_aic <- summary(stepwise_coffee_MML)$r.squared
-aic_coffee_MML_aic <- AIC(stepwise_coffee_MML)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MML_aic))
 print(paste("R-squared:", r2_coffee_MML_aic))
-print(paste("AIC:", aic_coffee_MML_aic))
 print(summary(stepwise_coffee_MML))
 
 
@@ -446,7 +441,6 @@ coffee_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_coffee_MML_rfe
 coffee_pred_MML_rfe <- predict(coffee_lm_MML_rfe, test_coffee_MML_rfe)
 mse_coffee_MML_rfe <- mean((test_coffee_MML_rfe$Mon.t_1_Manager_Longs.t - coffee_pred_MML_rfe)^2)
 r2_coffee_MML_rfe <- summary(coffee_lm_MML_rfe)$r.squared
-aic_coffee_MML_rfe <- AIC(coffee_lm_MML_rfe)
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MML_rfe))

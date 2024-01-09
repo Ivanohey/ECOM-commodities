@@ -60,12 +60,11 @@ stepwise_cocoa_oi <- step(cocoa_lm_oi_aic, direction = "backward")
 cocoa_pred_oi_aic <- predict(stepwise_cocoa_oi, test_cocoa_oi)
 mse_cocoa_oi_aic <- mean((test_cocoa_oi$Open_Interest.t - cocoa_pred_oi_aic)^2)
 r2_cocoa_oi_aic <- summary(stepwise_cocoa_oi)$r.squared
-aic_cocoa_oi_aic <- AIC(stepwise_cocoa_oi)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_oi_aic))
 print(paste("R-squared:", r2_cocoa_oi_aic))
-print(paste("AIC:", aic_cocoa_oi_aic))
 print(summary(stepwise_cocoa_oi))
 
 #R-squared: 0.973180108288965
@@ -102,7 +101,6 @@ cocoa_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_cocoa_oi_rfe)
 cocoa_pred_oi_rfe <- predict(cocoa_lm_oi_rfe, test_cocoa_oi_rfe)
 mse_cocoa_oi_rfe <- mean((test_cocoa_oi_rfe$Open_Interest.t - cocoa_pred_oi_rfe)^2)
 r2_cocoa_oi_rfe <- summary(cocoa_lm_oi_rfe)$r.squared
-aic_cocoa_oi_rfe <- AIC(cocoa_lm_oi_rfe)
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_oi_rfe))
@@ -237,12 +235,11 @@ stepwise_cocoa_MMS <- step(cocoa_lm_MMS_aic, direction = "backward")
 cocoa_pred_MMS_aic <- predict(stepwise_cocoa_MMS, test_cocoa_MMS)
 mse_cocoa_MMS_aic <- mean((test_cocoa_MMS$Mon.t_1_Manager_Shorts.t - cocoa_pred_MMS_aic)^2)
 r2_cocoa_MMS_aic <- summary(stepwise_cocoa_MMS)$r.squared
-aic_cocoa_MMS_aic <- AIC(stepwise_cocoa_MMS)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_MMS_aic))
 print(paste("R-squared:", r2_cocoa_MMS_aic))
-print(paste("AIC:", aic_cocoa_MMS_aic))
 print(summary(stepwise_cocoa_MMS))
 
 
@@ -277,7 +274,7 @@ cocoa_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cocoa_MMS_rfe)
 cocoa_pred_MMS_rfe <- predict(cocoa_lm_MMS_rfe, test_cocoa_MMS_rfe)
 mse_cocoa_MMS_rfe <- mean((test_cocoa_MMS_rfe$Open_Interest.t - cocoa_pred_MMS_rfe)^2)
 r2_cocoa_MMS_rfe <- summary(cocoa_lm_MMS_rfe)$r.squared
-aic_cocoa_MMS_rfe <- AIC(cocoa_lm_MMS_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_MMS_rfe))
@@ -404,12 +401,10 @@ stepwise_cocoa_MML <- step(cocoa_lm_MML_aic, direction = "backward")
 cocoa_pred_MML_aic <- predict(stepwise_cocoa_MML, test_cocoa_MML)
 mse_cocoa_MML_aic <- mean((test_cocoa_MML$Mon.t_1_Manager_Shorts.t - cocoa_pred_MML_aic)^2)
 r2_cocoa_MML_aic <- summary(stepwise_cocoa_MML)$r.squared
-aic_cocoa_MML_aic <- AIC(stepwise_cocoa_MML)
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_MML_aic))
 print(paste("R-squared:", r2_cocoa_MML_aic))
-print(paste("AIC:", aic_cocoa_MML_aic))
 print(summary(stepwise_cocoa_MML))
 
 
@@ -443,7 +438,6 @@ cocoa_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cocoa_MML_rfe)
 cocoa_pred_MML_rfe <- predict(cocoa_lm_MML_rfe, test_cocoa_MML_rfe)
 mse_cocoa_MML_rfe <- mean((test_cocoa_MML_rfe$Mon.t_1_Manager_Longs.t - cocoa_pred_MML_rfe)^2)
 r2_cocoa_MML_rfe <- summary(cocoa_lm_MML_rfe)$r.squared
-aic_cocoa_MML_rfe <- AIC(cocoa_lm_MML_rfe)
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cocoa_MML_rfe))

@@ -60,12 +60,11 @@ stepwise_cotton_oi <- step(cotton_lm_oi_aic, direction = "backward")
 cotton_pred_oi_aic <- predict(stepwise_cotton_oi, test_cotton_oi)
 mse_cotton_oi_aic <- mean((test_cotton_oi$Open_Interest.t - cotton_pred_oi_aic)^2)
 r2_cotton_oi_aic <- summary(stepwise_cotton_oi)$r.squared
-aic_cotton_oi_aic <- AIC(stepwise_cotton_oi)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_oi_aic))
 print(paste("R-squared:", r2_cotton_oi_aic))
-print(paste("AIC:", aic_cotton_oi_aic))
 print(summary(stepwise_cotton_oi))
 
 #R-squared: 0.973180108288965
@@ -102,7 +101,7 @@ cotton_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_cotton_oi_rfe)
 cotton_pred_oi_rfe <- predict(cotton_lm_oi_rfe, test_cotton_oi_rfe)
 mse_cotton_oi_rfe <- mean((test_cotton_oi_rfe$Open_Interest.t - cotton_pred_oi_rfe)^2)
 r2_cotton_oi_rfe <- summary(cotton_lm_oi_rfe)$r.squared
-aic_cotton_oi_rfe <- AIC(cotton_lm_oi_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_oi_rfe))
@@ -236,12 +235,10 @@ stepwise_cotton_MMS <- step(cotton_lm_MMS_aic, direction = "backward")
 cotton_pred_MMS_aic <- predict(stepwise_cotton_MMS, test_cotton_MMS)
 mse_cotton_MMS_aic <- mean((test_cotton_MMS$Mon.t_1_Manager_Shorts.t - cotton_pred_MMS_aic)^2)
 r2_cotton_MMS_aic <- summary(stepwise_cotton_MMS)$r.squared
-aic_cotton_MMS_aic <- AIC(stepwise_cotton_MMS)
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MMS_aic))
 print(paste("R-squared:", r2_cotton_MMS_aic))
-print(paste("AIC:", aic_cotton_MMS_aic))
 print(summary(stepwise_cotton_MMS))
 
 
@@ -275,7 +272,7 @@ cotton_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cotton_MMS_rf
 cotton_pred_MMS_rfe <- predict(cotton_lm_MMS_rfe, test_cotton_MMS_rfe)
 mse_cotton_MMS_rfe <- mean((test_cotton_MMS_rfe$Open_Interest.t - cotton_pred_MMS_rfe)^2)
 r2_cotton_MMS_rfe <- summary(cotton_lm_MMS_rfe)$r.squared
-aic_cotton_MMS_rfe <- AIC(cotton_lm_MMS_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MMS_rfe))
@@ -409,12 +406,11 @@ stepwise_cotton_MML <- step(cotton_lm_MML_aic, direction = "backward")
 cotton_pred_MML_aic <- predict(stepwise_cotton_MML, test_cotton_MML)
 mse_cotton_MML_aic <- mean((test_cotton_MML$Mon.t_1_Manager_Shorts.t - cotton_pred_MML_aic)^2)
 r2_cotton_MML_aic <- summary(stepwise_cotton_MML)$r.squared
-aic_cotton_MML_aic <- AIC(stepwise_cotton_MML)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MML_aic))
 print(paste("R-squared:", r2_cotton_MML_aic))
-print(paste("AIC:", aic_cotton_MML_aic))
 print(summary(stepwise_cotton_MML))
 
 
@@ -447,7 +443,7 @@ cotton_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cotton_MML_rfe
 cotton_pred_MML_rfe <- predict(cotton_lm_MML_rfe, test_cotton_MML_rfe)
 mse_cotton_MML_rfe <- mean((test_cotton_MML_rfe$Mon.t_1_Manager_Longs.t - cotton_pred_MML_rfe)^2)
 r2_cotton_MML_rfe <- summary(cotton_lm_MML_rfe)$r.squared
-aic_cotton_MML_rfe <- AIC(cotton_lm_MML_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MML_rfe))

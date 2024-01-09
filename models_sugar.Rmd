@@ -60,12 +60,11 @@ stepwise_sugar_oi <- step(sugar_lm_oi_aic, direction = "backward")
 sugar_pred_oi_aic <- predict(stepwise_sugar_oi, test_sugar_oi)
 mse_sugar_oi_aic <- mean((test_sugar_oi$Open_Interest.t - sugar_pred_oi_aic)^2)
 r2_sugar_oi_aic <- summary(stepwise_sugar_oi)$r.squared
-aic_sugar_oi_aic <- AIC(stepwise_sugar_oi)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_oi_aic))
 print(paste("R-squared:", r2_sugar_oi_aic))
-print(paste("AIC:", aic_sugar_oi_aic))
 print(summary(stepwise_sugar_oi))
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
@@ -101,7 +100,7 @@ sugar_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_sugar_oi_rfe)
 sugar_pred_oi_rfe <- predict(sugar_lm_oi_rfe, test_sugar_oi_rfe)
 mse_sugar_oi_rfe <- mean((test_sugar_oi_rfe$Open_Interest.t - sugar_pred_oi_rfe)^2)
 r2_sugar_oi_rfe <- summary(sugar_lm_oi_rfe)$r.squared
-aic_sugar_oi_rfe <- AIC(sugar_lm_oi_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_oi_rfe))
@@ -236,12 +235,11 @@ stepwise_sugar_MMS <- step(sugar_lm_MMS_aic, direction = "backward")
 sugar_pred_MMS_aic <- predict(stepwise_sugar_MMS, test_sugar_MMS)
 mse_sugar_MMS_aic <- mean((test_sugar_MMS$Mon.t_1_Manager_Shorts.t - sugar_pred_MMS_aic)^2)
 r2_sugar_MMS_aic <- summary(stepwise_sugar_MMS)$r.squared
-aic_sugar_MMS_aic <- AIC(stepwise_sugar_MMS)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_MMS_aic))
 print(paste("R-squared:", r2_sugar_MMS_aic))
-print(paste("AIC:", aic_sugar_MMS_aic))
 print(summary(stepwise_sugar_MMS))
 
 
@@ -276,7 +274,7 @@ sugar_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_sugar_MMS_rfe)
 sugar_pred_MMS_rfe <- predict(sugar_lm_MMS_rfe, test_sugar_MMS_rfe)
 mse_sugar_MMS_rfe <- mean((test_sugar_MMS_rfe$Open_Interest.t - sugar_pred_MMS_rfe)^2)
 r2_sugar_MMS_rfe <- summary(sugar_lm_MMS_rfe)$r.squared
-aic_sugar_MMS_rfe <- AIC(sugar_lm_MMS_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_MMS_rfe))
@@ -409,12 +407,11 @@ stepwise_sugar_MML <- step(sugar_lm_MML_aic, direction = "backward")
 sugar_pred_MML_aic <- predict(stepwise_sugar_MML, test_sugar_MML)
 mse_sugar_MML_aic <- mean((test_sugar_MML$Mon.t_1_Manager_Shorts.t - sugar_pred_MML_aic)^2)
 r2_sugar_MML_aic <- summary(stepwise_sugar_MML)$r.squared
-aic_sugar_MML_aic <- AIC(stepwise_sugar_MML)
+
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_MML_aic))
 print(paste("R-squared:", r2_sugar_MML_aic))
-print(paste("AIC:", aic_sugar_MML_aic))
 print(summary(stepwise_sugar_MML))
 
 
@@ -447,7 +444,7 @@ sugar_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_sugar_MML_rfe)
 sugar_pred_MML_rfe <- predict(sugar_lm_MML_rfe, test_sugar_MML_rfe)
 mse_sugar_MML_rfe <- mean((test_sugar_MML_rfe$Mon.t_1_Manager_Longs.t - sugar_pred_MML_rfe)^2)
 r2_sugar_MML_rfe <- summary(sugar_lm_MML_rfe)$r.squared
-aic_sugar_MML_rfe <- AIC(sugar_lm_MML_rfe)
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_sugar_MML_rfe))
