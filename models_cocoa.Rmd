@@ -504,7 +504,7 @@ cocoa_lasso_coef_df_MML <- as.data.frame(as.matrix(cocoa_lasso_coef_MML))
 # Add row names as a new column to the data frame
 cocoa_lasso_coef_df_MML$feature <- rownames(cocoa_lasso_coef_df_MML)
 
-#adjusted R-Squared
+# adjusted R-Squared
 n_cocoa_lasso_MML <- nrow(cocoa_train_scaled_MML) # number of observations
 p_cocoa_lasso_MML <- sum(cocoa_lasso_coef_df_MML$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
 adj_r2_cocoa_lasso_MML <- 1 - ( (1 - r2_cocoa_lasso_MML) * (n_cocoa_lasso_MML - 1) ) / (n_cocoa_lasso_MML - p_cocoa_lasso_MML - 1)
