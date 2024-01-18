@@ -9,6 +9,14 @@
 
 library(shiny)
 library(readxl)
+library(shiny)
+library(readxl)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(glmnet)
+library(randomForest)
 
 # Define the feature names (replace these with your actual feature names)
 # feature_names <- c("Date",	`Open Interest`,	`Producer Longs`,	`Producer Shorts`,

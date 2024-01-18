@@ -534,9 +534,9 @@ abline(h = 0, col = "red")
 ```
 
 ```{r}
-saveRDS(cocoa_lasso_pred_oi, "models_pred/cocoa_lasso_oi.rds")
-saveRDS(cocoa_lasso_pred_MMS, "models_pred/cocoa_lasso_mms.rds")
-saveRDS(cocoa_lasso_pred_MML, "models_pred/cocoa_lasso_mml.rds")
+saveRDS(cocoa_lasso_oi, "models_pred/cocoa_lasso_oi.rds")
+saveRDS(cocoa_lasso_MMS, "models_pred/cocoa_lasso_mms.rds")
+saveRDS(cocoa_lasso_MML, "models_pred/cocoa_lasso_mml.rds")
 
 ```
 

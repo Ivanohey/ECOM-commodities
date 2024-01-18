@@ -540,8 +540,8 @@ abline(h = 0, col = "red")
 ```
 
 ```{r}
-saveRDS(coffee_lasso_pred_oi, "models_pred/coffee_lasso_oi.rds")
-saveRDS(coffee_lasso_pred_MMS, "models_pred/coffee_lasso_mms.rds")
-saveRDS(coffee_lasso_pred_MML, "models_pred/coffee_lasso_mml.rds")
+saveRDS(coffee_lasso_oi, "models_pred/coffee_lasso_oi.rds")
+saveRDS(coffee_lasso_MMS, "models_pred/coffee_lasso_mms.rds")
+saveRDS(coffee_lasso_MML, "models_pred/coffee_lasso_mml.rds")
 
 ```
