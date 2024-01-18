@@ -538,3 +538,11 @@ plot(cotton_lasso_residuals_MML, ylab = "Residuals", xlab = "Predicted Values", 
 abline(h = 0, col = "red")
 
 ```
+
+```{r}
+
+saveRDS(cotton_lasso_pred_oi, "models_pred/cotton_lasso_oi.rds")
+saveRDS(cotton_lasso_pred_MMS, "models_pred/cotton_lasso_mms.rds")
+saveRDS(cotton_lasso_pred_MML, "models_pred/cotton_lasso_mml.rds")
+
+```

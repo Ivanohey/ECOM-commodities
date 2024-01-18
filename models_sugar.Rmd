@@ -541,3 +541,10 @@ abline(h = 0, col = "red")
 
 
 ```
+
+```{r}
+saveRDS(sugar_lasso_pred_oi, "models_pred/sugar_lasso_oi.rds")
+saveRDS(sugar_lasso_pred_MMS, "models_pred/sugar_lasso_mms.rds")
+saveRDS(sugar_lasso_pred_MML, "models_pred/sugar_lasso_mml.rds")
+
+```

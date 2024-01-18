@@ -9,6 +9,11 @@
 
 library(shiny)
 
+# Define the feature names (replace these with your actual feature names)
+feature_names <- c("Feature1", "Feature2", "Feature3", ..., "Feature17")
+
+
+
 # Define UI
 fluidPage(
   titlePanel("COT Line Prediction Tool"),
@@ -16,7 +21,19 @@ fluidPage(
     sidebarPanel(
       selectInput("Commodity", "Select Commodity", 
                   choices = c("Coffee", "Cocoa", "Cotton", "Sugar")),
-      # Your input fields and submit button
+      # Input fields for the latest COT line data
+      h4("Latest COT Line Data"),
+      lapply(feature_names, function(name) {
+        numericInput(paste0(name, " T"), name, value = 0)
+      }),
+      
+      # Input fields for the previous COT line data
+      h4("Previous COT Line Data"),
+      lapply(feature_names, function(name) {
+        numericInput(paste0(name, " T-1"), name, value = 0)
+      }),
+      
+      actionButton("submit", "Submit")
     ),
     mainPanel(
       h3("Results"),

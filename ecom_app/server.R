@@ -12,22 +12,22 @@ library(shiny)
 # Define server logic required to draw a histogram
 function(input, output, session) {
   # Load the models for each commodity
-  models_coffee <- list(open_interest = readRDS("path/to/coffee_model1.rds"),
-                        mms = readRDS("path/to/coffee_model2.rds"),
-                        mml = readRDS("path/to/coffee_model3.rds"))
+  models_coffee <- list(open_interest = readRDS("models_pred/coffee_lasso_oi.rds"),
+                        mms = readRDS("models_pred/coffee_lasso_mms.rds"),
+                        mml = readRDS("models_pred/coffee_lasso_mml.rds"))
   # Repeat the above for cocoa, cotton, and sugar
-  models_cocoa <- list(open_interest = readRDS("path/to/coffee_model1.rds"),
-                        mms = readRDS("path/to/coffee_model2.rds"),
-                        mml = readRDS("path/to/coffee_model3.rds"))
+  models_cocoa <- list(open_interest = readRDS("models_pred/cocoa_lasso_oi.rds"),
+                        mms = readRDS("models_pred/cocoa_lasso_mms.rds"),
+                        mml = readRDS("models_pred/cocoa_lasso_mml.rds"))
   
   
-  models_cotton <- list(open_interest = readRDS("path/to/coffee_model1.rds"),
-                        mms = readRDS("path/to/coffee_model2.rds"),
-                        mml = readRDS("path/to/coffee_model3.rds"))
+  models_cotton <- list(open_interest = readRDS("models_pred/cotton_lasso_oi.rds"),
+                        mms = readRDS("models_pred/cotton_lasso_mms.rds"),
+                        mml = readRDS("models_pred/cotton_lasso_mml.rds"))
   
-  models_sugar <- list(open_interest = readRDS("path/to/coffee_model1.rds"),
-                        mms = readRDS("path/to/coffee_model2.rds"),
-                        mml = readRDS("path/to/coffee_model3.rds"))
+  models_sugar <- list(open_interest = readRDS("models_pred/sugar_lasso_oi.rds"),
+                       mms = readRDS("models_pred/sugar_lasso_mms.rds"),
+                       mml = readRDS("models_pred/sugar_lasso_mml.rds"))
   
   observeEvent(input$submit, {
     

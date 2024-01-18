@@ -115,7 +115,6 @@ print(summary(cocoa_lm_oi_rfe))
 ## LASSO
 
 ```{r cocoa Open Interest LASSO Regression}
-
 library(car)
 library(readr)
 library(dplyr)
@@ -203,7 +202,15 @@ plot(cocoa_lasso_residuals_oi, ylab = "Residuals", xlab = "Predicted Values", ma
 abline(h = 0, col = "red")
 
 # -Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1
+```
 
+
+```{r cocoa Open Interest LASSO Regression}
+saveRDS(cocoa_lasso_pred_oi, "path/to/your_model.rds")
+```
+
+
+```{r cocoa Open Interest LASSO Regression}
 ```
 
 # MONEY MANAGERS
@@ -532,3 +539,11 @@ plot(cocoa_lasso_residuals_MML, ylab = "Residuals", xlab = "Predicted Values", m
 abline(h = 0, col = "red")
 
 ```
+
+```{r}
+saveRDS(cocoa_lasso_pred_oi, "models_pred/cocoa_lasso_oi.rds")
+saveRDS(cocoa_lasso_pred_MMS, "models_pred/cocoa_lasso_mms.rds")
+saveRDS(cocoa_lasso_pred_MML, "models_pred/cocoa_lasso_mml.rds")
+
+```
+
