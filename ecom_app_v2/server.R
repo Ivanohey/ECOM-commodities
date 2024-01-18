@@ -103,9 +103,15 @@ function(input, output, session) {
                               "Sugar" = models_sugar)
     
     # Perform model predictions
-    prediction1 <- predict(selected_models$open_interest, newdata = model_data)
-    prediction2 <- predict(selected_models$mms, newdata = model_data)
-    prediction3 <- predict(selected_models$mml, newdata = model_data)
+    prediction1 <- predict(selected_models$open_interest, as.matrix(model_data), s = "lambda.1se")
+    prediction2 <- predict(selected_models$mms, as.matrix(model_data), s = "lambda.1se")
+    prediction3 <- predict(selected_models$mml, as.matrix(model_data), s = "lambda.1se")
+    
+    # prediction1 <- predict(selected_models$open_interest, as.matrix(model_data), s = "lambda.1se")
+    # prediction2 <- predict(selected_models$mms, newdata = model_data)
+    # prediction3 <- predict(selected_models$mml, newdata = model_data)
+    
+    
     
     
     # Combine predictions into a data frame
