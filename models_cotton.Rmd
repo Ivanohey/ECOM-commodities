@@ -146,7 +146,7 @@ target <- "Open_Interest.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_cotton_oi %>% 
-  select(- Open_Interest.t_1, - Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Shorts.t_1, - `Other Reportable Spreads.t_1`) %>%
+  #select(- Open_Interest.t_1, - Total_Reportable_Shorts.t_1, -Total_Reportable_Longs.t_1, -Producer_Shorts.t_1, - `Other Reportable Spreads.t_1`) %>%
   select(-all_of(target)) %>% names()
 
 # -Open_Interest.t_1,-Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1
