@@ -205,13 +205,6 @@ abline(h = 0, col = "red")
 ```
 
 
-```{r cocoa Open Interest LASSO Regression}
-saveRDS(cocoa_lasso_pred_oi, "path/to/your_model.rds")
-```
-
-
-```{r cocoa Open Interest LASSO Regression}
-```
 
 # MONEY MANAGERS
 

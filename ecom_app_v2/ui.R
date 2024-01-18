@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(readxl)
 
 # Define the feature names (replace these with your actual feature names)
 # feature_names <- c("Date",	`Open Interest`,	`Producer Longs`,	`Producer Shorts`,
@@ -48,13 +49,7 @@ fluidPage(
     sidebarPanel(
       selectInput("Commodity", "Select Commodity", choices = c("Coffee", "Cocoa", "Cotton", "Sugar")),
       
-      # Input fields for the features
-      h4("Input Data"),
-      lapply(1:nrow(features_names), function(i) {
-        numericInput(features_names$features_mod[i], 
-                     label = features_names$features_input[i], 
-                     value = 0)
-      }),
+      fileInput("dataFile", "Upload Data File", accept = c(".csv", ".xlsx", ".xls")),
       
       actionButton("submit", "Submit")
     ),
