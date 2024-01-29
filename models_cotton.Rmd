@@ -60,13 +60,17 @@ stepwise_cotton_oi <- step(cotton_lm_oi_aic, direction = "backward")
 cotton_pred_oi_aic <- predict(stepwise_cotton_oi, test_cotton_oi)
 mse_cotton_oi_aic <- mean((test_cotton_oi$Open_Interest.t - cotton_pred_oi_aic)^2)
 r2_cotton_oi_aic <- summary(stepwise_cotton_oi)$r.squared
+mae_cotton_oi_aic <- mean(abs(test_cotton_oi$Open_Interest.t - cotton_pred_oi_aic))
 
+#Plotting predictions vs. test values
+plot(cotton_pred_oi_aic ~ test_cotton_oi$Open_Interest.t, main="Predictions of LM AIC model for Open interest Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_pred_oi_aic~test_cotton_oi$Open_Interest.t), col="red")
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_oi_aic))
 print(paste("R-squared:", r2_cotton_oi_aic))
 print(summary(stepwise_cotton_oi))
-
+cat("Mean Absolute Error (MAE):", mae_cotton_oi_aic, "\n")
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
 
@@ -101,13 +105,18 @@ cotton_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_cotton_oi_rfe)
 cotton_pred_oi_rfe <- predict(cotton_lm_oi_rfe, test_cotton_oi_rfe)
 mse_cotton_oi_rfe <- mean((test_cotton_oi_rfe$Open_Interest.t - cotton_pred_oi_rfe)^2)
 r2_cotton_oi_rfe <- summary(cotton_lm_oi_rfe)$r.squared
+mae_cotton_oi_rfe <- mean(abs(test_cotton_oi_rfe$Open_Interest.t - cotton_pred_oi_rfe))
 
+
+#Plotting predictions vs. test values
+plot(cotton_pred_oi_rfe ~ test_cotton_oi_rfe$Open_Interest.t, main="Predictions of LM RFE model for Open interest Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_pred_oi_rfe~test_cotton_oi_rfe$Open_Interest.t), col="red")
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_oi_rfe))
 print(paste("R-squared:", r2_cotton_oi_rfe))
 print(summary(cotton_lm_oi_rfe))
-
+cat("Mean Absolute Error (MAE):", mae_cotton_oi_rfe, "\n")
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
 
@@ -166,6 +175,12 @@ best_lambda <- cotton_lasso_oi$lambda.1se
 cotton_lasso_pred_oi <- predict(cotton_lasso_oi, as.matrix(cotton_test_scaled_oi[, features]), s = "lambda.1se")
 mse_cotton_lasso_oi <- mean((cotton_test_scaled_oi[[target]] - cotton_lasso_pred_oi)^2)
 r2_cotton_lasso_oi <- cor(cotton_test_scaled_oi[[target]], as.vector(cotton_lasso_pred_oi))^2
+mae_cotton_lasso_oi <- mean(abs(cotton_test_scaled_oi$Open_Interest.t - cotton_lasso_pred_oi))
+cat("Mean Absolute Error (MAE):", mae_cotton_lasso_oi, "\n")
+
+#Plotting predictions vs. test values
+plot(cotton_lasso_pred_oi ~ cotton_test_scaled_oi$Open_Interest.t, main="Predictions of Lasso Open Interest Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_lasso_pred_oi~cotton_test_scaled_oi$Open_Interest.t), col="red")
 
 
 # Extract coefficients at the best lambda value
@@ -235,12 +250,18 @@ stepwise_cotton_MMS <- step(cotton_lm_MMS_aic, direction = "backward")
 cotton_pred_MMS_aic <- predict(stepwise_cotton_MMS, test_cotton_MMS)
 mse_cotton_MMS_aic <- mean((test_cotton_MMS$Mon.t_1_Manager_Shorts.t - cotton_pred_MMS_aic)^2)
 r2_cotton_MMS_aic <- summary(stepwise_cotton_MMS)$r.squared
+mae_cotton_MMS_aic <- mean(abs(test_cotton_MMS$Mon.t_1_Manager_Shorts.t - cotton_pred_MMS_aic))
+
+
+#Plotting predictions vs. test values
+plot(cotton_pred_MMS_aic ~ test_cotton_MMS$Mon.t_1_Manager_Shorts.t, main="Predictions of LM AIC model for MMS Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_pred_MMS_aic~test_cotton_MMS$Mon.t_1_Manager_Shorts.t), col="red")
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MMS_aic))
 print(paste("R-squared:", r2_cotton_MMS_aic))
 print(summary(stepwise_cotton_MMS))
-
+cat("Mean Absolute Error (MAE):", mae_cotton_MMS_aic, "\n")
 
 ```
 
@@ -272,13 +293,18 @@ cotton_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cotton_MMS_rf
 cotton_pred_MMS_rfe <- predict(cotton_lm_MMS_rfe, test_cotton_MMS_rfe)
 mse_cotton_MMS_rfe <- mean((test_cotton_MMS_rfe$Open_Interest.t - cotton_pred_MMS_rfe)^2)
 r2_cotton_MMS_rfe <- summary(cotton_lm_MMS_rfe)$r.squared
+mae_cotton_MMS_rfe <- mean(abs(test_cotton_MMS_rfe$Mon.t_1_Manager_Shorts.t- cotton_pred_MMS_rfe))
+
+#Plotting predictions vs. test values
+plot(cotton_pred_MMS_rfe ~ test_cotton_MMS_rfe$Mon.t_1_Manager_Shorts.t, main="Predictions of LM RFE model for MMS Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_pred_MMS_rfe~test_cotton_MMS_rfe$Mon.t_1_Manager_Shorts.t), col="red")
 
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MMS_rfe))
 print(paste("R-squared:", r2_cotton_MMS_rfe))
 print(summary(cotton_lm_MMS_rfe))
-
+cat("Mean Absolute Error (MAE):", mae_cotton_MMS_rfe, "\n")
 
 
 ```
@@ -334,9 +360,13 @@ best_lambda <- cotton_lasso_MMS$lambda.1se
 cotton_lasso_pred_MMS <- predict(cotton_lasso_MMS, as.matrix(cotton_test_scaled_MMS[, features]), s = "lambda.1se")
 mse_cotton_lasso_MMS <- mean((cotton_test_scaled_MMS[[target]] - cotton_lasso_pred_MMS)^2)
 r2_cotton_lasso_MMS <- cor(cotton_test_scaled_MMS[[target]], as.vector(cotton_lasso_pred_MMS))^2
+mae_cotton_lasso_MMS <- mean(abs(cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - cotton_lasso_pred_MMS))
 
+cat("Mean Absolute Error (MAE):", mae_cotton_lasso_MMS, "\n")
 
-
+#Plotting predictions vs. test values
+plot(cotton_lasso_pred_MMS ~ cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t, main="Predictions of Lasso model for MMS Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_lasso_pred_MMS~cotton_test_scaled_MMS$Mon.t_1_Manager_Shorts.t), col="red")
 
 # Extract coefficients at the best lambda value
 cotton_lasso_coef_MMS <- coef(cotton_lasso_MMS, s = "lambda.1se")
@@ -404,14 +434,19 @@ stepwise_cotton_MML <- step(cotton_lm_MML_aic, direction = "backward")
 
 # Predict and evaluate the stepwise model
 cotton_pred_MML_aic <- predict(stepwise_cotton_MML, test_cotton_MML)
-mse_cotton_MML_aic <- mean((test_cotton_MML$Mon.t_1_Manager_Shorts.t - cotton_pred_MML_aic)^2)
+mse_cotton_MML_aic <- mean((test_cotton_MML$Mon.t_1_Manager_Longs.t - cotton_pred_MML_aic)^2)
 r2_cotton_MML_aic <- summary(stepwise_cotton_MML)$r.squared
+mae_cotton_MML_aic <- mean(abs(test_cotton_MML$Mon.t_1_Manager_Longs.t - cotton_pred_MML_aic))
 
+#Plotting predictions vs. test values
+plot(cotton_pred_MML_aic ~ test_cotton_MML$Mon.t_1_Manager_Longs.t, main="Predictions of LM AIC model for MML Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_pred_MML_aic~test_cotton_MML$Mon.t_1_Manager_Longs.t), col="red")
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MML_aic))
 print(paste("R-squared:", r2_cotton_MML_aic))
 print(summary(stepwise_cotton_MML))
+cat("Mean Absolute Error (MAE):", mae_cotton_MML_aic, "\n")
 
 
 ```
@@ -443,12 +478,18 @@ cotton_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cotton_MML_rfe
 cotton_pred_MML_rfe <- predict(cotton_lm_MML_rfe, test_cotton_MML_rfe)
 mse_cotton_MML_rfe <- mean((test_cotton_MML_rfe$Mon.t_1_Manager_Longs.t - cotton_pred_MML_rfe)^2)
 r2_cotton_MML_rfe <- summary(cotton_lm_MML_rfe)$r.squared
+mae_cotton_MML_rfe <- mean(abs(test_cotton_MML_rfe$Mon.t_1_Manager_Longs.t - cotton_pred_MML_rfe))
+
+#Plotting predictions vs. test values
+plot(cotton_pred_MML_rfe ~ test_cotton_MML_rfe$Mon.t_1_Manager_Longs.t, main="Predictions of LM RFE model for MML Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_pred_MML_rfe~test_cotton_MML_rfe$Mon.t_1_Manager_Longs.t), col="red")
 
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_cotton_MML_rfe))
 print(paste("R-squared:", r2_cotton_MML_rfe))
 print(summary(cotton_lm_MML_rfe))
+cat("Mean Absolute Error (MAE):", mae_cotton_MML_rfe, "\n")
 ```
 
 
@@ -499,7 +540,13 @@ best_lambda <- cotton_lasso_MML$lambda.1se
 cotton_lasso_pred_MML <- predict(cotton_lasso_MML, as.matrix(cotton_test_scaled_MML[, features]), s = "lambda.1se")
 mse_cotton_lasso_MML <- mean((cotton_test_scaled_MML[[target]] - cotton_lasso_pred_MML)^2)
 r2_cotton_lasso_MML <- cor(cotton_test_scaled_MML[[target]], as.vector(cotton_lasso_pred_MML))^2
+mae_cotton_lasso_MML <- mean(abs(cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t - cotton_lasso_pred_MML))
 
+cat("Mean Absolute Error (MAE):", mae_cotton_lasso_MML, "\n")
+
+#Plotting predictions vs. test values
+plot(cotton_lasso_pred_MML ~cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t, main="Predictions of Lasso model for MML Cotton vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cotton_lasso_pred_MML~cotton_test_scaled_MML$Mon.t_1_Manager_Longs.t), col="red")
 
 # Extract coefficients at the best lambda value
 cotton_lasso_coef_MML <- coef(cotton_lasso_MML, s = "lambda.1se")

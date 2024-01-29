@@ -59,6 +59,14 @@ stepwise_coffee_oi <- step(coffee_lm_oi_aic, direction = "backward")
 # Predict and evaluate the stepwise model
 coffee_pred_oi_aic <- predict(stepwise_coffee_oi, test_coffee_oi)
 mse_coffee_oi_aic <- mean((test_coffee_oi$Open_Interest.t - coffee_pred_oi_aic)^2)
+mae_coffee_oi_aic <- mean(abs(test_coffee_oi$Open_Interest.t - coffee_pred_oi_aic))
+
+
+#Plotting predictions vs. test values
+plot(coffee_pred_oi_aic ~ test_coffee_oi$Open_Interest.t, main="Predictions of LM AIC model for Open interest Coffee vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(coffee_pred_oi_aic~test_coffee_oi$Open_Interest.t), col="red")
+
+
 r2_coffee_oi_aic <- summary(stepwise_coffee_oi)$r.squared
 
 
@@ -66,6 +74,7 @@ r2_coffee_oi_aic <- summary(stepwise_coffee_oi)$r.squared
 print(paste("MSE:", mse_coffee_oi_aic))
 print(paste("R-squared:", r2_coffee_oi_aic))
 print(summary(stepwise_coffee_oi))
+cat("Mean Absolute Error (MAE):", mae, "\n")
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
 
@@ -101,12 +110,13 @@ coffee_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_coffee_oi_rfe)
 coffee_pred_oi_rfe <- predict(coffee_lm_oi_rfe, test_coffee_oi_rfe)
 mse_coffee_oi_rfe <- mean((test_coffee_oi_rfe$Open_Interest.t - coffee_pred_oi_rfe)^2)
 r2_coffee_oi_rfe <- summary(coffee_lm_oi_rfe)$r.squared
+mae_coffee_oi_rfe <- mean(abs(test_coffee_oi_rfe$Open_Interest.t - coffee_pred_oi_rfe))
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_oi_rfe))
 print(paste("R-squared:", r2_coffee_oi_rfe))
 print(summary(coffee_lm_oi_rfe))
-
+cat("Mean Absolute Error (MAE):", mae_coffee_oi_rfe, "\n")
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
 
@@ -165,6 +175,9 @@ best_lambda <- coffee_lasso_oi$lambda.1se
 coffee_lasso_pred_oi <- predict(coffee_lasso_oi, as.matrix(coffee_test_scaled_oi[, features]), s = "lambda.1se")
 mse_coffee_lasso_oi <- mean((coffee_test_scaled_oi[[target]] - coffee_lasso_pred_oi)^2)
 r2_coffee_lasso_oi <- cor(coffee_test_scaled_oi[[target]], as.vector(coffee_lasso_pred_oi))^2
+mae_coffee_lasso_oi <- mean(abs(coffee_test_scaled_oi$Open_Interest.t - coffee_lasso_pred_oi))
+cat("Mean Absolute Error (MAE):", mae_coffee_lasso_oi, "\n")
+
 
 
 # Extract coefficients at the best lambda value
@@ -235,13 +248,17 @@ stepwise_coffee_MMS <- step(coffee_lm_MMS_aic, direction = "backward")
 coffee_pred_MMS_aic <- predict(stepwise_coffee_MMS, test_coffee_MMS)
 mse_coffee_MMS_aic <- mean((test_coffee_MMS$Mon.t_1_Manager_Shorts.t - coffee_pred_MMS_aic)^2)
 r2_coffee_MMS_aic <- summary(stepwise_coffee_MMS)$r.squared
+mae_coffee_MMS_aic <- mean(abs(test_coffee_MMS$Mon.t_1_Manager_Shorts.t - coffee_pred_MMS_aic))
 
+#Plotting predictions vs. test values
+plot(coffee_pred_MMS_aic ~ test_coffee_MMS$Mon.t_1_Manager_Shorts.t, main="Predictions of LM AIC model for MMS Coffee vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(coffee_pred_MMS_aic~test_coffee_MMS$Mon.t_1_Manager_Shorts.t), col="red")
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MMS_aic))
 print(paste("R-squared:", r2_coffee_MMS_aic))
 print(summary(stepwise_coffee_MMS))
-
+cat("Mean Absolute Error (MAE):", mae_coffee_MMS_aic, "\n")
 
 ```
 
@@ -272,13 +289,16 @@ coffee_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_coffee_MMS_rf
 
 # Predict and evaluate the stepwise model
 coffee_pred_MMS_rfe <- predict(coffee_lm_MMS_rfe, test_coffee_MMS_rfe)
-mse_coffee_MMS_rfe <- mean((test_coffee_MMS_rfe$Open_Interest.t - coffee_pred_MMS_rfe)^2)
+mse_coffee_MMS_rfe <- mean((test_coffee_MMS_rfe$Mon.t_1_Manager_Shorts.t - coffee_pred_MMS_rfe)^2)
 r2_coffee_MMS_rfe <- summary(coffee_lm_MMS_rfe)$r.squared
+mae_coffee_MMS_rfe <- mean(abs(test_coffee_MMS_rfe$Mon.t_1_Manager_Shorts.t - coffee_pred_MMS_rfe))
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MMS_rfe))
 print(paste("R-squared:", r2_coffee_MMS_rfe))
 print(summary(coffee_lm_MMS_rfe))
+cat("Mean Absolute Error (MAE):", mae_coffee_MMS_rfe, "\n")
 
 ```
 
@@ -330,8 +350,8 @@ best_lambda <- coffee_lasso_MMS$lambda.1se
 coffee_lasso_pred_MMS <- predict(coffee_lasso_MMS, as.matrix(coffee_test_scaled_MMS[, features]), s = "lambda.1se")
 mse_coffee_lasso_MMS <- mean((coffee_test_scaled_MMS[[target]] - coffee_lasso_pred_MMS)^2)
 r2_coffee_lasso_MMS <- cor(coffee_test_scaled_MMS[[target]], as.vector(coffee_lasso_pred_MMS))^2
-
-
+mae_coffee_lasso_MMS <- mean(abs(coffee_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - coffee_lasso_pred_MMS))
+cat("Mean Absolute Error (MAE):", mae, "\n")
 
 
 # Extract coefficients at the best lambda value
@@ -403,13 +423,13 @@ stepwise_coffee_MML <- step(coffee_lm_MML_aic, direction = "backward")
 coffee_pred_MML_aic <- predict(stepwise_coffee_MML, test_coffee_MML)
 mse_coffee_MML_aic <- mean((test_coffee_MML$Mon.t_1_Manager_Shorts.t - coffee_pred_MML_aic)^2)
 r2_coffee_MML_aic <- summary(stepwise_coffee_MML)$r.squared
-
+mae_coffee_MML_aic <- mean(abs(test_coffee_MML$Mon.t_1_Manager_Longs.t - coffee_pred_MML_aic))
 
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MML_aic))
 print(paste("R-squared:", r2_coffee_MML_aic))
 print(summary(stepwise_coffee_MML))
-
+cat("Mean Absolute Error (MAE):", mae_coffee_MML_aic, "\n")
 
 ```
 
@@ -441,11 +461,14 @@ coffee_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_coffee_MML_rfe
 coffee_pred_MML_rfe <- predict(coffee_lm_MML_rfe, test_coffee_MML_rfe)
 mse_coffee_MML_rfe <- mean((test_coffee_MML_rfe$Mon.t_1_Manager_Longs.t - coffee_pred_MML_rfe)^2)
 r2_coffee_MML_rfe <- summary(coffee_lm_MML_rfe)$r.squared
+mae_coffee_MML_rfe <- mean(abs(test_coffee_MML_rfe$Mon.t_1_Manager_Longs.t - coffee_pred_MML_rfe))
+
 
 # Print the MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MML_rfe))
 print(paste("R-squared:", r2_coffee_MML_rfe))
 print(summary(coffee_lm_MML_rfe))
+cat("Mean Absolute Error (MAE):", mae_coffee_MML_rfe, "\n")
 
 ```
 
@@ -497,8 +520,8 @@ best_lambda <- coffee_lasso_MML$lambda.1se
 coffee_lasso_pred_MML <- predict(coffee_lasso_MML, as.matrix(coffee_test_scaled_MML[, features]), s = "lambda.1se")
 mse_coffee_lasso_MML <- mean((coffee_test_scaled_MML[[target]] - coffee_lasso_pred_MML)^2)
 r2_coffee_lasso_MML <- cor(coffee_test_scaled_MML[[target]], as.vector(coffee_lasso_pred_MML))^2
-
-
+mae_coffee_lasso_MML <- mean(abs(coffee_test_scaled_MML$Mon.t_1_Manager_Longs.t - coffee_lasso_pred_MML))
+cat("Mean Absolute Error (MAE):", mae_coffee_lasso_MML, "\n")
 # Extract coefficients at the best lambda value
 coffee_lasso_coef_MML <- coef(coffee_lasso_MML, s = "lambda.1se")
 
