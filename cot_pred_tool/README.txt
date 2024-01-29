@@ -2,7 +2,8 @@
 
 This document helps the user to handle and interact with the COT Prediction Tool designed for ECOM Agroindustrial.
 
-ATTENTION: Make sure to have the latest versions of R and RStudio running on the operating system.
+ATTENTION: - Make sure to have the latest versions of R and RStudio running on the operating system, available here: https://posit.co/download/rstudio-desktop/
+           - Install all required packages, RStudio should suggest you to do it by accepting a window. If not, install them manually in the console using the following function: install.packages("package name")
 
 
 Setting the data:
@@ -10,8 +11,8 @@ Setting the data:
  1. Create a copy of the "cot_export.xlsx" file located in the "export" folder (rename it if needed)
  2. Open the newly duplicated file.
  2. Paste the data in the following order:
-      - The first 16 columns (1 to 16) must be filled with the latest data available (data on time T), please make sure the correct value is            assigned to the corresponding variable.
-      - The next 16 columns (16 to 32) must be filled with the second last data available (data on time T-1), please make sure the correct value         is assigned to the corresponding variable.
+      - The first 16 columns (1 to 16) must be filled with the latest data available (data on time T), please make sure the correct value is assigned to the corresponding variable.
+      - The next 16 columns (16 to 32) must be filled with the second last data available (data on time T-1), please make sure the correct value is assigned to the corresponding variable.
       - The next 5 columns (33 to 37) must be filled with the price difference of the concerned commodity by applying the following formula:            price_diff_Commodity(T) = Price_commo(T) - Price_commo(T-1).
       - The last 5 columns (38 to 42) must be filled with the price difference of the concerned commodity by applying the following formula:            price_diff_Commodity(T-1) = Price_commo(T-1) - Price_commo(T-2).
   3. Save the modified file.
