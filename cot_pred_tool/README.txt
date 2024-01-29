@@ -1,4 +1,4 @@
------------------------------------ Welcome in the COT Prediction Tool User Guide -----------------------------------
+--- Welcome in the COT Prediction Tool User Guide ---
 
 This document helps the user to handle and interact with the COT Prediction Tool designed for ECOM Agroindustrial.
 
@@ -13,8 +13,8 @@ Setting the data:
  2. Paste the data in the following order:
       - The first 16 columns (1 to 16) must be filled with the latest data available (data on time T), please make sure the correct value is assigned to the corresponding variable.
       - The next 16 columns (16 to 32) must be filled with the second last data available (data on time T-1), please make sure the correct value is assigned to the corresponding variable.
-      - The next 5 columns (33 to 37) must be filled with the price difference of the concerned commodity by applying the following formula:            price_diff_Commodity(T) = Price_commo(T) - Price_commo(T-1).
-      - The last 5 columns (38 to 42) must be filled with the price difference of the concerned commodity by applying the following formula:            price_diff_Commodity(T-1) = Price_commo(T-1) - Price_commo(T-2).
+      - The next 5 columns (33 to 37) must be filled with the price difference of the concerned commodity by applying the following formula: price_diff_Commodity(T) = Price_commo(T) - Price_commo(T-1).
+      - The last 5 columns (38 to 42) must be filled with the price difference of the concerned commodity by applying the following formula: price_diff_Commodity(T-1) = Price_commo(T-1) - Price_commo(T-2).
   3. Save the modified file.
   4. Open either the ui.R or Server.R file and press the "Run App" button.
   5. The app should open itself into the default browser or in the visualization window of RStudio, expand it if needed.
