@@ -66,7 +66,7 @@ mae_sugar_oi_aic <- mean(abs(test_sugar_oi$Open_Interest.t - sugar_pred_oi_aic))
 
 
 #Plotting predictions vs. test values
-plot(sugar_pred_oi_aic ~ test_sugar_oi$Open_Interest.t, main="Sugar Open Interest predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+plot(sugar_pred_oi_aic ~ test_sugar_oi$Open_Interest.t, main="Sugar Open Interest AIC LM model predicted vs. test values", xlab="Test values", ylab="Predicted values")
 abline(lm(sugar_pred_oi_aic~test_sugar_oi$Open_Interest.t), col="red")
 
 # MAE, MSE, R-squared, and AIC
@@ -114,7 +114,7 @@ mae_sugar_oi_rfe <- mean(abs(test_sugar_oi$Open_Interest.t - sugar_pred_oi_rfe))
 
 
 #Plotting predictions vs. test values
-plot(sugar_pred_oi_rfe ~ test_sugar_oi$Open_Interest.t, main="Sugar Open Interest predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+plot(sugar_pred_oi_rfe ~ test_sugar_oi$Open_Interest.t, main="Sugar Open Interest RFE LM model predicted vs. test values", xlab="Test values", ylab="Predicted values")
 abline(lm(sugar_pred_oi_rfe~test_sugar_oi$Open_Interest.t), col="red")
 
 # MAE, MSE, R-squared, and rfe
@@ -260,7 +260,7 @@ mae_sugar_MMS_aic <- mean(abs(test_sugar_MMS$Open_Interest.t - sugar_pred_MMS_ai
 
 
 #Plotting predictions vs. test values
-plot(sugar_pred_MMS_aic ~ test_sugar_MMS$Open_Interest.t, main="Sugar Money Managers Shorts predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+plot(sugar_pred_MMS_aic ~ test_sugar_MMS$Open_Interest.t, main="Sugar Money Managers Shorts AIC LM model predicted vs. test values", xlab="Test values", ylab="Predicted values")
 abline(lm(sugar_pred_MMS_aic~test_sugar_MMS$Open_Interest.t), col="red")
 
 # MAE, MSE, R-squared, and AIC
@@ -306,7 +306,7 @@ mae_sugar_MMS_rfe <- mean(abs(test_sugar_MMS$Open_Interest.t - sugar_pred_MMS_rf
 
 
 #Plotting predictions vs. test values
-plot(sugar_pred_MMS_rfe ~ test_sugar_MMS$Open_Interest.t, main="Sugar Money Managers Shorts predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+plot(sugar_pred_MMS_rfe ~ test_sugar_MMS$Open_Interest.t, main="Sugar Money Managers Shorts RFE LM model predicted vs. test values", xlab="Test values", ylab="Predicted values")
 abline(lm(sugar_pred_MMS_rfe~test_sugar_MMS$Open_Interest.t), col="red")
 
 # MAE, MSE, R-squared, and rfe
@@ -449,7 +449,7 @@ mae_sugar_MML_aic <- mean(abs(test_sugar_MML$Open_Interest.t - sugar_pred_MML_ai
 
 
 #Plotting predictions vs. test values
-plot(sugar_pred_MML_aic ~ test_sugar_MML$Open_Interest.t, main="Sugar Money Managers Longs predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+plot(sugar_pred_MML_aic ~ test_sugar_MML$Open_Interest.t, main="Sugar Money Managers Longs AIC LM model predicted vs. test values", xlab="Test values", ylab="Predicted values")
 abline(lm(sugar_pred_MML_aic~test_sugar_MML$Open_Interest.t), col="red")
 
 # MAE, MSE, R-squared, and AIC
@@ -493,7 +493,7 @@ mae_sugar_MML_rfe <- mean(abs(test_sugar_MML$Open_Interest.t - sugar_pred_MML_rf
 
 
 #Plotting predictions vs. test values
-plot(sugar_pred_MML_rfe ~ test_sugar_MML$Open_Interest.t, main="Sugar Money Managers Longs predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+plot(sugar_pred_MML_rfe ~ test_sugar_MML$Open_Interest.t, main="Sugar Money Managers Longs RFE LM model predicted vs. test values", xlab="Test values", ylab="Predicted values")
 abline(lm(sugar_pred_MML_rfe~test_sugar_MML$Open_Interest.t), col="red")
 
 # MAE, MSE, R-squared, and rfe
@@ -534,7 +534,7 @@ target <- "Mon.t_1_Manager_Longs.t"
 
 # we define the features that will be used in the Lasso Regression. We remove variables that are highly correlated (cf. EDA correlation heatmaps)
 features <- train_sugar_MML %>% 
-  select(- Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
+ select(- Open_Interest.t_1, -Total_Reportable_Longs.t_1, -Total_Reportable_Shorts.t_1, -`Other Reportable Spreads.t_1`, - Mon.t_1_Manager_Spreads.t_1, -Producer_Shorts.t_1, -Producer_Longs.t_1) %>%
   select(-all_of(target)) %>% names()
 
 

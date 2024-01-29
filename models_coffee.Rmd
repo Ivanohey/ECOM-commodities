@@ -425,6 +425,11 @@ mse_coffee_MML_aic <- mean((test_coffee_MML$Mon.t_1_Manager_Shorts.t - coffee_pr
 r2_coffee_MML_aic <- summary(stepwise_coffee_MML)$r.squared
 mae_coffee_MML_aic <- mean(abs(test_coffee_MML$Mon.t_1_Manager_Longs.t - coffee_pred_MML_aic))
 
+
+plot(coffee_pred_MML_aic ~ test_coffee_MML$Mon.t_1_Manager_Longs.t, main="Predictions of LM AIC model for MMS Coffee vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(coffee_pred_MML_aic~test_coffee_MML$Mon.t_1_Manager_Longs.t), col="red")
+
+
 # MSE, R-squared, and AIC
 print(paste("MSE:", mse_coffee_MML_aic))
 print(paste("R-squared:", r2_coffee_MML_aic))
