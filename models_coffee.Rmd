@@ -74,7 +74,7 @@ r2_coffee_oi_aic <- summary(stepwise_coffee_oi)$r.squared
 print(paste("MSE:", mse_coffee_oi_aic))
 print(paste("R-squared:", r2_coffee_oi_aic))
 print(summary(stepwise_coffee_oi))
-cat("Mean Absolute Error (MAE):", mae, "\n")
+cat("Mean Absolute Error (MAE):", mae_coffee_oi_aic, "\n")
 #R-squared: 0.973180108288965
 #AIC: 13281.2918272419
 
@@ -351,7 +351,7 @@ coffee_lasso_pred_MMS <- predict(coffee_lasso_MMS, as.matrix(coffee_test_scaled_
 mse_coffee_lasso_MMS <- mean((coffee_test_scaled_MMS[[target]] - coffee_lasso_pred_MMS)^2)
 r2_coffee_lasso_MMS <- cor(coffee_test_scaled_MMS[[target]], as.vector(coffee_lasso_pred_MMS))^2
 mae_coffee_lasso_MMS <- mean(abs(coffee_test_scaled_MMS$Mon.t_1_Manager_Shorts.t - coffee_lasso_pred_MMS))
-cat("Mean Absolute Error (MAE):", mae, "\n")
+cat("Mean Absolute Error (MAE):", mae_coffee_lasso_MMS, "\n")
 
 
 # Extract coefficients at the best lambda value

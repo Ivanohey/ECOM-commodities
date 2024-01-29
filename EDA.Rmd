@@ -261,7 +261,7 @@ covariance_matrices_list <- list()
 
 # Iterate through the standardized data list and calculate the covariance matrix
 for (commodity in commodities) {
-  # Get the standardized data from the standardized list
+  #Get the standardized data from the standardized list
   standardized_data <- standardized_commodity_data_list[[commodity]]
   
   # Exclude the "Date" column

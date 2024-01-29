@@ -312,7 +312,7 @@ coffee_MML_diff = na.omit(coffee_MML_diff)
 
 coffee_MML_cor = cor(coffee_MML_diff$MM_L_diff, coffee_MML_diff$Coffee.t, method="pearson")
 
-#Relationship is not linear -> Eventually possible to use logistic regression instead
+#Relationship is not linear 
 ggscatter(coffee_MML_diff, 
           x="MM_L_diff", 
           y="Coffee.t", 
