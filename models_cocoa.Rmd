@@ -34,6 +34,8 @@ predictors_cocoa <- setdiff(predictors_cocoa, c("Sugar.t_1", "Coffee.t_1", "Cott
 
 ```
 
+## OPEN INTEREST
+
 ## AIC
 
 ```{r cocoa LM AIC open interest}
@@ -60,9 +62,16 @@ stepwise_cocoa_oi <- step(cocoa_lm_oi_aic, direction = "backward")
 cocoa_pred_oi_aic <- predict(stepwise_cocoa_oi, test_cocoa_oi)
 mse_cocoa_oi_aic <- mean((test_cocoa_oi$Open_Interest.t - cocoa_pred_oi_aic)^2)
 r2_cocoa_oi_aic <- summary(stepwise_cocoa_oi)$r.squared
+mae_cocoa_oi_aic <- mean(abs(test_cocoa_oi$Open_Interest.t - cocoa_pred_oi_aic))
 
 
-# MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(cocoa_pred_oi_aic ~ test_cocoa_oi$Open_Interest.t, main="Cocoa Open Interest predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cocoa_pred_oi_aic~test_cocoa_oi$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and AIC
+
+print(paste0("MAE: ", mae_cocoa_oi_aic))
 print(paste("MSE:", mse_cocoa_oi_aic))
 print(paste("R-squared:", r2_cocoa_oi_aic))
 print(summary(stepwise_cocoa_oi))
@@ -101,8 +110,16 @@ cocoa_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_cocoa_oi_rfe)
 cocoa_pred_oi_rfe <- predict(cocoa_lm_oi_rfe, test_cocoa_oi_rfe)
 mse_cocoa_oi_rfe <- mean((test_cocoa_oi_rfe$Open_Interest.t - cocoa_pred_oi_rfe)^2)
 r2_cocoa_oi_rfe <- summary(cocoa_lm_oi_rfe)$r.squared
+mae_cocoa_oi_rfe <- mean(abs(test_cocoa_oi$Open_Interest.t - cocoa_pred_oi_rfe))
 
-# Print the MSE, R-squared, and AIC
+
+#Plotting predictions vs. test values
+plot(cocoa_pred_oi_rfe ~ test_cocoa_oi$Open_Interest.t, main="Cocoa Open Interest predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cocoa_pred_oi_rfe~test_cocoa_oi$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and rfe
+
+print(paste0("MAE: ", mae_cocoa_oi_rfe))
 print(paste("MSE:", mse_cocoa_oi_rfe))
 print(paste("R-squared:", r2_cocoa_oi_rfe))
 print(summary(cocoa_lm_oi_rfe))
@@ -163,7 +180,9 @@ best_lambda <- cocoa_lasso_oi$lambda.1se
 cocoa_lasso_pred_oi <- predict(cocoa_lasso_oi, as.matrix(cocoa_test_scaled_oi[, features]), s = "lambda.1se")
 mse_cocoa_lasso_oi <- mean((cocoa_test_scaled_oi[[target]] - cocoa_lasso_pred_oi)^2)
 r2_cocoa_lasso_oi <- cor(cocoa_test_scaled_oi[[target]], as.vector(cocoa_lasso_pred_oi))^2
+mae_cocoa_oi_lasso <- mean(abs(cocoa_test_scaled_oi[[target]] - cocoa_lasso_pred_oi))
 
+print(paste0("MAE: ", mae_cocoa_oi_lasso))
 
 # Extract coefficients at the best lambda value
 cocoa_lasso_coef_oi <- coef(cocoa_lasso_oi, s = "lambda.1se")
@@ -180,7 +199,7 @@ p_cocoa_lasso_oi <- sum(cocoa_lasso_coef_df_oi$V1 != 0) - 1 # number of non-zero
 adj_r2_cocoa_lasso_oi <- 1 - ( (1 - r2_cocoa_lasso_oi) * (n_cocoa_lasso_oi - 1) ) / (n_cocoa_lasso_oi - p_cocoa_lasso_oi - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_cocoa_lasso_oi, r2 = r2_cocoa_lasso_oi, adjusted_r2 = adj_r2_cocoa_lasso_oi, Lambda = best_lambda)
+list(mse = mse_cocoa_lasso_oi, r2 = r2_cocoa_lasso_oi, mae = mae_cocoa_oi_lasso, adjusted_r2 = adj_r2_cocoa_lasso_oi, Lambda = best_lambda)
 
 
 # Filter out the intercept and the non-zero coefficients
@@ -235,9 +254,16 @@ stepwise_cocoa_MMS <- step(cocoa_lm_MMS_aic, direction = "backward")
 cocoa_pred_MMS_aic <- predict(stepwise_cocoa_MMS, test_cocoa_MMS)
 mse_cocoa_MMS_aic <- mean((test_cocoa_MMS$Mon.t_1_Manager_Shorts.t - cocoa_pred_MMS_aic)^2)
 r2_cocoa_MMS_aic <- summary(stepwise_cocoa_MMS)$r.squared
+mae_cocoa_MMS_aic <- mean(abs(test_cocoa_MMS$Open_Interest.t - cocoa_pred_MMS_aic))
 
 
-# MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(cocoa_pred_MMS_aic ~ test_cocoa_MMS$Open_Interest.t, main="Cocoa Money Managers Shorts predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cocoa_pred_MMS_aic~test_cocoa_MMS$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and AIC
+
+print(paste0("MAE: ", mae_cocoa_MMS_aic))
 print(paste("MSE:", mse_cocoa_MMS_aic))
 print(paste("R-squared:", r2_cocoa_MMS_aic))
 print(summary(stepwise_cocoa_MMS))
@@ -274,9 +300,16 @@ cocoa_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_cocoa_MMS_rfe)
 cocoa_pred_MMS_rfe <- predict(cocoa_lm_MMS_rfe, test_cocoa_MMS_rfe)
 mse_cocoa_MMS_rfe <- mean((test_cocoa_MMS_rfe$Open_Interest.t - cocoa_pred_MMS_rfe)^2)
 r2_cocoa_MMS_rfe <- summary(cocoa_lm_MMS_rfe)$r.squared
+mae_cocoa_MMS_rfe <- mean(abs(test_cocoa_MMS$Open_Interest.t - cocoa_pred_MMS_rfe))
 
 
-# Print the MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(cocoa_pred_MMS_rfe ~ test_cocoa_MMS$Open_Interest.t, main="Cocoa Money Managers Shorts predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cocoa_pred_MMS_rfe~test_cocoa_MMS$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and rfe
+
+print(paste0("MAE: ", mae_cocoa_MMS_rfe))
 print(paste("MSE:", mse_cocoa_MMS_rfe))
 print(paste("R-squared:", r2_cocoa_MMS_rfe))
 print(summary(cocoa_lm_MMS_rfe))
@@ -331,7 +364,9 @@ best_lambda <- cocoa_lasso_MMS$lambda.1se
 cocoa_lasso_pred_MMS <- predict(cocoa_lasso_MMS, as.matrix(cocoa_test_scaled_MMS[, features]), s = "lambda.1se")
 mse_cocoa_lasso_MMS <- mean((cocoa_test_scaled_MMS[[target]] - cocoa_lasso_pred_MMS)^2)
 r2_cocoa_lasso_MMS <- cor(cocoa_test_scaled_MMS[[target]], as.vector(cocoa_lasso_pred_MMS))^2
+mae_cocoa_MMS_lasso <- mean(abs(cocoa_test_scaled_MMS[[target]] - cocoa_lasso_pred_MMS))
 
+print(paste0("MAE: ", mae_cocoa_MMS_lasso))
 
 
 
@@ -350,7 +385,7 @@ p_cocoa_lasso_MMS <- sum(cocoa_lasso_coef_df_MMS$V1 != 0) - 1 # number of non-ze
 adj_r2_cocoa_lasso_MMS <- 1 - ( (1 - r2_cocoa_lasso_MMS) * (n_cocoa_lasso_MMS - 1) ) / (n_cocoa_lasso_MMS - p_cocoa_lasso_MMS - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_cocoa_lasso_MMS, r2 = r2_cocoa_lasso_MMS, adjusted_r2 = adj_r2_cocoa_lasso_MMS, Lambda = best_lambda)
+list(mse = mse_cocoa_lasso_MMS, r2 = r2_cocoa_lasso_MMS, mae = mae_cocoa_MMS_lasso, adjusted_r2 = adj_r2_cocoa_lasso_MMS, Lambda = best_lambda)
 
 
 
@@ -375,7 +410,7 @@ abline(h = 0, col = "red")
 
 ```
 
-## Longs
+## LONGS
 
 ### AIC
 ```{r}
@@ -401,8 +436,16 @@ stepwise_cocoa_MML <- step(cocoa_lm_MML_aic, direction = "backward")
 cocoa_pred_MML_aic <- predict(stepwise_cocoa_MML, test_cocoa_MML)
 mse_cocoa_MML_aic <- mean((test_cocoa_MML$Mon.t_1_Manager_Shorts.t - cocoa_pred_MML_aic)^2)
 r2_cocoa_MML_aic <- summary(stepwise_cocoa_MML)$r.squared
+mae_cocoa_MML_aic <- mean(abs(test_cocoa_MML$Open_Interest.t - cocoa_pred_MML_aic))
 
-# MSE, R-squared, and AIC
+
+#Plotting predictions vs. test values
+plot(cocoa_pred_MML_aic ~ test_cocoa_MML$Open_Interest.t, main="Cocoa Money Managers Longs predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cocoa_pred_MML_aic~test_cocoa_MML$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and AIC
+
+print(paste0("MAE: ", mae_cocoa_MML_aic))
 print(paste("MSE:", mse_cocoa_MML_aic))
 print(paste("R-squared:", r2_cocoa_MML_aic))
 print(summary(stepwise_cocoa_MML))
@@ -438,8 +481,16 @@ cocoa_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_cocoa_MML_rfe)
 cocoa_pred_MML_rfe <- predict(cocoa_lm_MML_rfe, test_cocoa_MML_rfe)
 mse_cocoa_MML_rfe <- mean((test_cocoa_MML_rfe$Mon.t_1_Manager_Longs.t - cocoa_pred_MML_rfe)^2)
 r2_cocoa_MML_rfe <- summary(cocoa_lm_MML_rfe)$r.squared
+mae_cocoa_MML_rfe <- mean(abs(test_cocoa_MML$Open_Interest.t - cocoa_pred_MML_rfe))
 
-# Print the MSE, R-squared, and AIC
+
+#Plotting predictions vs. test values
+plot(cocoa_pred_MML_rfe ~ test_cocoa_MML$Open_Interest.t, main="Cocoa Money Managers Longs predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(cocoa_pred_MML_rfe~test_cocoa_MML$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and summary
+
+print(paste0("MAE: ", mae_cocoa_MML_rfe))
 print(paste("MSE:", mse_cocoa_MML_rfe))
 print(paste("R-squared:", r2_cocoa_MML_rfe))
 print(summary(cocoa_lm_MML_rfe))
@@ -493,7 +544,9 @@ best_lambda <- cocoa_lasso_MML$lambda.1se
 cocoa_lasso_pred_MML <- predict(cocoa_lasso_MML, as.matrix(cocoa_test_scaled_MML[, features]), s = "lambda.1se")
 mse_cocoa_lasso_MML <- mean((cocoa_test_scaled_MML[[target]] - cocoa_lasso_pred_MML)^2)
 r2_cocoa_lasso_MML <- cor(cocoa_test_scaled_MML[[target]], as.vector(cocoa_lasso_pred_MML))^2
+mae_cocoa_MML_lasso <- mean(abs(cocoa_test_scaled_MML[[target]] - as.vector(cocoa_lasso_pred_MML))
 
+print(paste0("MAE: ", mae_cocoa_MML_lasso))
 
 # Extract coefficients at the best lambda value
 cocoa_lasso_coef_MML <- coef(cocoa_lasso_MML, s = "lambda.1se")
@@ -510,7 +563,7 @@ p_cocoa_lasso_MML <- sum(cocoa_lasso_coef_df_MML$V1 != 0) - 1 # number of non-ze
 adj_r2_cocoa_lasso_MML <- 1 - ( (1 - r2_cocoa_lasso_MML) * (n_cocoa_lasso_MML - 1) ) / (n_cocoa_lasso_MML - p_cocoa_lasso_MML - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_cocoa_lasso_MML, r2 = r2_cocoa_lasso_MML, adjusted_r2 = adj_r2_cocoa_lasso_MML, Lambda = best_lambda)
+list(mse = mse_cocoa_lasso_MML, r2 = r2_cocoa_lasso_MML, mae = mae_cocoa_MML_lasso, adjusted_r2 = adj_r2_cocoa_lasso_MML, Lambda = best_lambda)
 
 
 # Filter out the intercept and the non-zero coefficients

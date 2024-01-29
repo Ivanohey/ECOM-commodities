@@ -34,6 +34,8 @@ predictors_sugar <- setdiff(predictors_sugar, c("Cotton.t_1", "Cocoa.t_1", "Coff
 
 ```
 
+## OPEN INTEREST
+
 ## AIC
 
 ```{r SUGAR LM AIC open interest}
@@ -60,14 +62,22 @@ stepwise_sugar_oi <- step(sugar_lm_oi_aic, direction = "backward")
 sugar_pred_oi_aic <- predict(stepwise_sugar_oi, test_sugar_oi)
 mse_sugar_oi_aic <- mean((test_sugar_oi$Open_Interest.t - sugar_pred_oi_aic)^2)
 r2_sugar_oi_aic <- summary(stepwise_sugar_oi)$r.squared
+mae_sugar_oi_aic <- mean(abs(test_sugar_oi$Open_Interest.t - sugar_pred_oi_aic))
 
 
-# MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(sugar_pred_oi_aic ~ test_sugar_oi$Open_Interest.t, main="Sugar Open Interest predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(sugar_pred_oi_aic~test_sugar_oi$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and AIC
+
+print(paste0("MAE: ", mae_sugar_oi_aic))
 print(paste("MSE:", mse_sugar_oi_aic))
 print(paste("R-squared:", r2_sugar_oi_aic))
 print(summary(stepwise_sugar_oi))
 #R-squared: 0.971484189620582
 #AIC: 14517.2534706176
+
 
 ```
 
@@ -100,9 +110,16 @@ sugar_lm_oi_rfe <- lm(Open_Interest.t ~ ., data = train_sugar_oi_rfe)
 sugar_pred_oi_rfe <- predict(sugar_lm_oi_rfe, test_sugar_oi_rfe)
 mse_sugar_oi_rfe <- mean((test_sugar_oi_rfe$Open_Interest.t - sugar_pred_oi_rfe)^2)
 r2_sugar_oi_rfe <- summary(sugar_lm_oi_rfe)$r.squared
+mae_sugar_oi_rfe <- mean(abs(test_sugar_oi$Open_Interest.t - sugar_pred_oi_rfe))
 
 
-# Print the MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(sugar_pred_oi_rfe ~ test_sugar_oi$Open_Interest.t, main="Sugar Open Interest predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(sugar_pred_oi_rfe~test_sugar_oi$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and rfe
+
+print(paste0("MAE: ", mae_sugar_oi_rfe))
 print(paste("MSE:", mse_sugar_oi_rfe))
 print(paste("R-squared:", r2_sugar_oi_rfe))
 print(summary(sugar_lm_oi_rfe))
@@ -164,7 +181,10 @@ best_lambda <- sugar_lasso_oi$lambda.1se
 sugar_lasso_pred_oi <- predict(sugar_lasso_oi, as.matrix(sugar_test_scaled_oi[, features]), s = "lambda.1se")
 mse_sugar_lasso_oi <- mean((sugar_test_scaled_oi[[target]] - sugar_lasso_pred_oi)^2)
 r2_sugar_lasso_oi <- cor(sugar_test_scaled_oi[[target]], as.vector(sugar_lasso_pred_oi))^2
+mae_sugar_oi_lasso <- mean(abs(sugar_test_scaled_oi[[target]] - sugar_lasso_pred_oi))
 
+
+print(paste0("MAE: ", mae_sugar_oi_lasso))
 
 # Extract coefficients at the best lambda value
 sugar_lasso_coef_oi <- coef(sugar_lasso_oi, s = "lambda.1se")
@@ -180,8 +200,9 @@ n_sugar_lasso_oi <- nrow(sugar_train_scaled_oi) # number of observations
 p_sugar_lasso_oi <- sum(sugar_lasso_coef_df_oi$V1 != 0) - 1 # number of non-zero coefficients, excluding intercept
 adj_r2_sugar_lasso_oi <- 1 - ( (1 - r2_sugar_lasso_oi) * (n_sugar_lasso_oi - 1) ) / (n_sugar_lasso_oi - p_sugar_lasso_oi - 1)
 
+
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_sugar_lasso_oi, r2 = r2_sugar_lasso_oi, adjusted_r2 = adj_r2_sugar_lasso_oi, Lambda = best_lambda)
+list(mse = mse_sugar_lasso_oi, r2 = r2_sugar_lasso_oi, adjusted_r2 = adj_r2_sugar_lasso_oi, Lambda = best_lambda, mae = mae_sugar_oi_lasso)
 print(summary(sugar_lasso_oi))
 
 # Filter out the intercept and the non-zero coefficients
@@ -235,9 +256,16 @@ stepwise_sugar_MMS <- step(sugar_lm_MMS_aic, direction = "backward")
 sugar_pred_MMS_aic <- predict(stepwise_sugar_MMS, test_sugar_MMS)
 mse_sugar_MMS_aic <- mean((test_sugar_MMS$Mon.t_1_Manager_Shorts.t - sugar_pred_MMS_aic)^2)
 r2_sugar_MMS_aic <- summary(stepwise_sugar_MMS)$r.squared
+mae_sugar_MMS_aic <- mean(abs(test_sugar_MMS$Open_Interest.t - sugar_pred_MMS_aic))
 
 
-# MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(sugar_pred_MMS_aic ~ test_sugar_MMS$Open_Interest.t, main="Sugar Money Managers Shorts predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(sugar_pred_MMS_aic~test_sugar_MMS$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and AIC
+
+print(paste0("MAE: ", mae_sugar_MMS_aic))
 print(paste("MSE:", mse_sugar_MMS_aic))
 print(paste("R-squared:", r2_sugar_MMS_aic))
 print(summary(stepwise_sugar_MMS))
@@ -274,9 +302,16 @@ sugar_lm_MMS_rfe <- lm(Mon.t_1_Manager_Shorts.t ~ ., data = train_sugar_MMS_rfe)
 sugar_pred_MMS_rfe <- predict(sugar_lm_MMS_rfe, test_sugar_MMS_rfe)
 mse_sugar_MMS_rfe <- mean((test_sugar_MMS_rfe$Open_Interest.t - sugar_pred_MMS_rfe)^2)
 r2_sugar_MMS_rfe <- summary(sugar_lm_MMS_rfe)$r.squared
+mae_sugar_MMS_rfe <- mean(abs(test_sugar_MMS$Open_Interest.t - sugar_pred_MMS_rfe))
 
 
-# Print the MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(sugar_pred_MMS_rfe ~ test_sugar_MMS$Open_Interest.t, main="Sugar Money Managers Shorts predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(sugar_pred_MMS_rfe~test_sugar_MMS$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and rfe
+
+print(paste0("MAE: ", mae_sugar_MMS_rfe))
 print(paste("MSE:", mse_sugar_MMS_rfe))
 print(paste("R-squared:", r2_sugar_MMS_rfe))
 print(summary(sugar_lm_MMS_rfe))
@@ -332,7 +367,10 @@ best_lambda <- sugar_lasso_MMS$lambda.1se
 sugar_lasso_pred_MMS <- predict(sugar_lasso_MMS, as.matrix(sugar_test_scaled_MMS[, features]), s = "lambda.1se")
 mse_sugar_lasso_MMS <- mean((sugar_test_scaled_MMS[[target]] - sugar_lasso_pred_MMS)^2)
 r2_sugar_lasso_MMS <- cor(sugar_test_scaled_MMS[[target]], as.vector(sugar_lasso_pred_MMS))^2
+mae_sugar_MMS_lasso <- mean(abs(sugar_test_scaled_MMS[[target]] - sugar_lasso_pred_MMS))
 
+
+print(paste0("MAE: ", mae_sugar_MMS_lasso))
 
 
 
@@ -351,7 +389,7 @@ p_sugar_lasso_MMS <- sum(sugar_lasso_coef_df_MMS$V1 != 0) - 1 # number of non-ze
 adj_r2_sugar_lasso_MMS <- 1 - ( (1 - r2_sugar_lasso_MMS) * (n_sugar_lasso_MMS - 1) ) / (n_sugar_lasso_MMS - p_sugar_lasso_MMS - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_sugar_lasso_MMS, r2 = r2_sugar_lasso_MMS, adjusted_r2 = adj_r2_sugar_lasso_MMS, Lambda = best_lambda)
+list(mse = mse_sugar_lasso_MMS, r2 = r2_sugar_lasso_MMS, adjusted_r2 = adj_r2_sugar_lasso_MMS, Lambda = best_lambda, mae = mae_sugar_MMS_lasso)
 
 
 
@@ -381,7 +419,7 @@ abline(h = 0, col = "red")
 
 ```
 
-## Longs
+## LONGS
 
 ### AIC
 ```{r}
@@ -407,9 +445,16 @@ stepwise_sugar_MML <- step(sugar_lm_MML_aic, direction = "backward")
 sugar_pred_MML_aic <- predict(stepwise_sugar_MML, test_sugar_MML)
 mse_sugar_MML_aic <- mean((test_sugar_MML$Mon.t_1_Manager_Shorts.t - sugar_pred_MML_aic)^2)
 r2_sugar_MML_aic <- summary(stepwise_sugar_MML)$r.squared
+mae_sugar_MML_aic <- mean(abs(test_sugar_MML$Open_Interest.t - sugar_pred_MML_aic))
 
 
-# MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(sugar_pred_MML_aic ~ test_sugar_MML$Open_Interest.t, main="Sugar Money Managers Longs predictions of AIC LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(sugar_pred_MML_aic~test_sugar_MML$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and AIC
+
+print(paste0("MAE: ", mae_sugar_MML_aic))
 print(paste("MSE:", mse_sugar_MML_aic))
 print(paste("R-squared:", r2_sugar_MML_aic))
 print(summary(stepwise_sugar_MML))
@@ -444,9 +489,16 @@ sugar_lm_MML_rfe <- lm(Mon.t_1_Manager_Longs.t ~ ., data = train_sugar_MML_rfe)
 sugar_pred_MML_rfe <- predict(sugar_lm_MML_rfe, test_sugar_MML_rfe)
 mse_sugar_MML_rfe <- mean((test_sugar_MML_rfe$Mon.t_1_Manager_Longs.t - sugar_pred_MML_rfe)^2)
 r2_sugar_MML_rfe <- summary(sugar_lm_MML_rfe)$r.squared
+mae_sugar_MML_rfe <- mean(abs(test_sugar_MML$Open_Interest.t - sugar_pred_MML_rfe))
 
 
-# Print the MSE, R-squared, and AIC
+#Plotting predictions vs. test values
+plot(sugar_pred_MML_rfe ~ test_sugar_MML$Open_Interest.t, main="Sugar Money Managers Longs predictions of RFE LM model production vs. test values", xlab="Test values", ylab="Predicted values")
+abline(lm(sugar_pred_MML_rfe~test_sugar_MML$Open_Interest.t), col="red")
+
+# MAE, MSE, R-squared, and rfe
+
+print(paste0("MAE: ", mae_sugar_MML_rfe))
 print(paste("MSE:", mse_sugar_MML_rfe))
 print(paste("R-squared:", r2_sugar_MML_rfe))
 print(summary(sugar_lm_MML_rfe))
@@ -501,7 +553,10 @@ best_lambda <- sugar_lasso_MML$lambda.1se
 sugar_lasso_pred_MML <- predict(sugar_lasso_MML, as.matrix(sugar_test_scaled_MML[, features]), s = "lambda.1se")
 mse_sugar_lasso_MML <- mean((sugar_test_scaled_MML[[target]] - sugar_lasso_pred_MML)^2)
 r2_sugar_lasso_MML <- cor(sugar_test_scaled_MML[[target]], as.vector(sugar_lasso_pred_MML))^2
+mae_sugar_MML_lasso <- mean(abs(sugar_test_scaled_MML[[target]] - sugar_lasso_pred_MML))
 
+
+print(paste0("MAE: ", mae_sugar_MML_lasso))
 
 # Extract coefficients at the best lambda value
 sugar_lasso_coef_MML <- coef(sugar_lasso_MML, s = "lambda.1se")
@@ -518,7 +573,7 @@ p_sugar_lasso_MML <- sum(sugar_lasso_coef_df_MML$V1 != 0) - 1 # number of non-ze
 adj_r2_sugar_lasso_MML <- 1 - ( (1 - r2_sugar_lasso_MML) * (n_sugar_lasso_MML - 1) ) / (n_sugar_lasso_MML - p_sugar_lasso_MML - 1)
 
 # Output the MSE, R-squared, and best lambda (alpha)
-list(mse = mse_sugar_lasso_MML, r2 = r2_sugar_lasso_MML, adjusted_r2 = adj_r2_sugar_lasso_MML, Lambda = best_lambda)
+list(mse = mse_sugar_lasso_MML, r2 = r2_sugar_lasso_MML, adjusted_r2 = adj_r2_sugar_lasso_MML, Lambda = best_lambda, mae = mae_sugar_MML_lasso)
 
 
 # Filter out the intercept and the non-zero coefficients
