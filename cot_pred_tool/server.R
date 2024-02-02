@@ -1,3 +1,16 @@
+# Welcome to the COT prediction tool.
+
+# This is the server definition of a Shiny web application. You can
+# run the application by clicking 'Run App' above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+# Please refer to the enclosed README.txt file in the cot_pred_tool folder for help and a user guide.
+
+
+
 wd = getwd()
 cat("Current working directory: ",wd)
 setwd(wd)
@@ -10,6 +23,10 @@ library(tidyr)
 library(caret)
 library(glmnet)
 library(randomForest)
+
+# Features_input are the variables names as they stand on the cot_export.xls file
+# Features_mod refers to variables as they are read by the model.
+
 
 features_names <- data.frame(
   features_input = c("Open Interest T", "Producer Longs T", "Producer Shorts T",
@@ -42,25 +59,28 @@ features_names <- data.frame(
                    "Cocoa.t_1",	"Coffee.t_1",	"Cotton.t_1", "Oil.t_1", "Sugar.t_1")
 )
 
-# Define server logic required to draw a histogram
+
 server <- function(input, output, session) {
+  
   # Load the models for each commodity
   models_coffee <- list(open_interest = readRDS("../models_pred/stepwise_coffee_oi.rds"),
                         mms = readRDS("../models_pred/stepwise_coffee_MMS.rds"),
                         mml = readRDS("../models_pred/stepwise_coffee_MML.rds"))
-  # Repeat the above for cocoa, cotton, and sugar
+  
   models_cocoa <- list(open_interest = readRDS("../models_pred/stepwise_cocoa_oi.rds"),
                        mms = readRDS("../models_pred/stepwise_cocoa_MMS.rds"),
                        mml = readRDS("../models_pred/stepwise_cocoa_MML.rds"))
+  
   models_cotton <- list(open_interest = readRDS("../models_pred/stepwise_cotton_oi.rds"),
                         mms = readRDS("../models_pred/stepwise_cotton_MMS.rds"),
                         mml = readRDS("../models_pred/stepwise_cotton_MML.rds"))
+  
   models_sugar <- list(open_interest = readRDS("../models_pred/stepwise_sugar_oi.rds"),
                        mms = readRDS("../models_pred/stepwise_sugar_MMS.rds"),
                        mml = readRDS("../models_pred/stepwise_sugar_MML.rds"))
   
   observeEvent(input$submit, {
-    req(input$dataFile)  # Ensure a file is uploaded
+    req(input$dataFile)
     
     # Read the uploaded file based on its extension
     file_extension <- tools::file_ext(input$dataFile$name)
@@ -75,7 +95,7 @@ server <- function(input, output, session) {
     # Convert pred_file to a data frame if it's a tibble
     pred_file <- as.data.frame(pred_file)
     
-    # Create a mapping from features_input to features_mod
+    # Create a mapping from features_input to features_mod (input variables are not in same format as the ones saved by the model)
     col_mapping <- setNames(features_names$features_mod, features_names$features_input)
     
     # Check if all required columns are present in the uploaded file
@@ -103,7 +123,7 @@ server <- function(input, output, session) {
                               "Cotton" = models_cotton,
                               "Sugar" = models_sugar)
     
-    # Perform model predictions, ensuring target variables are not in predictors
+    # Perform model predictions for each target
     prediction_open_interest <- predict(selected_models$open_interest, model_data)
     prediction_manager_shorts <- predict(selected_models$mms, model_data)
     prediction_manager_longs <- predict(selected_models$mml, model_data)
